@@ -2,22 +2,27 @@
 
 Status: Draft 0.1
 
+> AI makes code cheap. Daicho makes operational code trustworthy.
+
 ## 1. Purpose
 
-Daicho is an open-source framework for AI-era business tools and CRUD-oriented operational systems. Its purpose is to provide a secure, text-first, TypeScript-centered foundation for building APIs and workflows that are usually served by internal admin panels, while avoiding GUI-first development and avoiding default administrative GUIs.
+Daicho is an open-source framework for AI-era business tools and CRUD-oriented operational systems. Its purpose is to provide a security-first, text-first, TypeScript-centered foundation for building APIs and workflows that are usually served by internal admin panels, while avoiding GUI-first development and avoiding default administrative GUIs. Daicho treats operational code as production-critical infrastructure: generated code must be reviewable, policy-aware, tenant-safe, and secure by default.
 
 ## 2. Design constraints
 
 Daicho implementations must satisfy these constraints:
 
+- Security first: every generator, runtime path, adapter, and template must prefer explicit, reviewable, least-privilege behavior over convenience.
+- Secure by default: default projects must avoid password login, unsafe SQL construction, cross-tenant access, hidden infrastructure, and unnecessary administrative surfaces.
 - Development must be possible entirely through source files, CLI commands, tests, and CI/CD.
 - A development GUI must not be required or provided as a core workflow.
 - Administrative GUI generation must not be enabled by default.
-- Password login must be disabled by default.
+- Password login must be disabled by default, and the first authentication mode may assume an upstream trusted boundary such as Cloudflare Access or another external access proxy.
 - PostgreSQL must be the primary transactional database.
 - Multi-tenancy must be designed into the resource, policy, audit, and migration layers.
 - Deployment must be possible without a proprietary hosted control plane.
 - Dependencies must be minimized, pinned, reviewed, and replaceable where possible.
+- Security-sensitive behavior must remain understandable in generated source, tests, plans, and migrations.
 
 ## 3. Terminology
 
@@ -59,7 +64,7 @@ Resources must define:
 - Authorization policy bindings.
 - Audit requirements.
 
-Resource definitions should be statically analyzable and deterministic.
+Resource definitions should be statically analyzable and deterministic. The initial implementation may support TypeScript schemas, YAML/JSON schemas, or both, provided the chosen format remains text-first, deterministic, and reviewable.
 
 ### 4.3 API runtime
 
@@ -79,7 +84,7 @@ GraphQL, event APIs, or UI-specific endpoints may be added later, but they are n
 
 ### 4.4 Authentication
 
-Daicho must support identity integrations through explicit adapters.
+Daicho must support identity integrations through explicit adapters. The first implementation should support a no-login application mode that trusts a validated upstream identity or access boundary, such as Cloudflare Access or an equivalent reverse-proxy identity layer.
 
 Required adapter categories:
 
@@ -87,8 +92,9 @@ Required adapter categories:
 - SAML 2.0.
 - Passkey / WebAuthn.
 - Service credentials for automation.
+- Upstream trusted identity / no-login mode for deployments protected by an external access layer.
 
-Password authentication must be implemented only as an opt-in module, if it is implemented at all.
+Password authentication must be implemented only as an opt-in module, if it is implemented at all. Built-in OIDC, SAML, and passkey adapters may follow after the no-login/upstream-identity mode.
 
 ### 4.5 Authorization
 
@@ -119,11 +125,11 @@ Generated code must prevent accidental cross-tenant access by construction.
 
 The PostgreSQL layer must provide:
 
-- Safe SQL generation.
+- Safe SQL generation through a minimal internal query builder or equivalent guardrail that at least prevents SQL injection and enforces security-critical query invariants.
 - Migration files committed to source control.
 - Transaction boundaries for mutations.
 - Tenant-aware query constraints.
-- Optional row-level security generation.
+- Optional row-level security generation as a future capability, not a first-prototype default.
 - Audit event persistence.
 - Backup and restore documentation.
 
@@ -136,7 +142,7 @@ Required template qualities:
 - No required Daicho-hosted service.
 - Clear secret inputs.
 - Managed PostgreSQL support.
-- Container-based runtime support.
+- Container-based runtime support, with Docker Compose as the minimum local deployment target for early testing.
 - Health checks.
 - Rollback guidance.
 - Environment-specific configuration files.
@@ -157,7 +163,8 @@ Generated projects must include:
 
 - **Portability**: applications should run locally, in containers, on Kubernetes, and on major cloud container platforms.
 - **Operability**: common operations should be scriptable and observable without dashboards.
-- **Security**: secure defaults should reduce exposure for small teams and remain extensible for enterprises.
+- **Security first**: security requirements should shape schema design, generation, query construction, authentication boundaries, policy evaluation, and deployment templates before convenience features.
+- **Secure by default**: default projects should reduce exposure for small teams and remain extensible for enterprises without requiring hidden administrative services.
 - **Performance**: generated CRUD paths should avoid unnecessary abstraction layers.
 - **Maintainability**: generated code should be understandable and safe to review.
 - **International adoption**: documentation, examples, errors, and generated APIs should be English-first initially and localization-ready later.
@@ -205,3 +212,14 @@ The first prototype is acceptable when it can:
 8. Run tests from the command line.
 9. Produce a Docker Compose deployment for local operation.
 10. Avoid password login in the default template.
+11. Operate behind an upstream trusted identity or access boundary without requiring an in-app login screen.
+12. Generate database access through the minimal safe query builder or equivalent guardrail.
+
+## 9. Resolved design decisions
+
+- **First schema format**: TypeScript, YAML/JSON, or both are acceptable. The chosen implementation must remain text-first, deterministic, statically analyzable, and reviewable.
+- **SQL generation strategy**: Daicho should include at least a minimal internal query builder or equivalent guardrail for security-critical SQL construction. Security and tenant invariants matter more than avoiding all abstraction.
+- **PostgreSQL row-level security**: RLS generation is not required for the first prototype. It should remain a future optional capability.
+- **First identity mode**: implement a no-login / upstream trusted identity mode first, assuming deployments can be protected by Cloudflare Access or an equivalent external access layer. OIDC, SAML, and passkeys can follow as explicit adapters.
+- **Minimum viable deployment target**: provide Docker Compose or an equivalent local container setup first so teams can test Daicho easily.
+- **Optional UI generation**: Daicho itself may not need a management UI. Generated applications should be manageable through APIs, CLIs, and application-specific workflows; any optional UI generator should be separate from the core runtime unless a strong reason emerges.
