@@ -1,42 +1,41 @@
 # Daicho Resource Model Specification
 
-Status: Draft 0.1  
+Status: Draft 0.2
 Phase: 0
 
 ## 1. Purpose
 
-This document defines the resource model that Daicho will use to generate validation, database, API, policy, and audit artifacts.
+This document defines resources: the source model Daicho uses for validation, database mapping, APIs, policies, and audit.
 
-## 2. Resource requirements
+## 2. Required resource fields
 
-Every resource must define:
+Every resource must declare:
 
-- Stable resource name.
+- Stable name.
 - Tenancy mode.
 - Database table mapping.
 - Primary key.
-- Field definitions.
-- Validation constraints.
+- Fields and validation.
 - Indexes.
 - Relationships.
-- API exposure.
+- Exposed API operations.
 - Policy bindings.
 - Audit behavior.
 
 ## 3. Tenancy modes
 
-A resource must use one of:
+A resource must use exactly one mode:
 
-- `global`.
-- `tenant_scoped`.
-- `tenant_partitioned`.
-- `system`.
+- `global`: shared data protected by policy.
+- `tenant_scoped`: each row belongs to one tenant.
+- `tenant_partitioned`: data is isolated by schema or database.
+- `system`: framework or operational data.
 
-A `tenant_scoped` resource must define a tenant key. Generated queries must include tenant constraints for all operations that access tenant data.
+`tenant_scoped` resources must define a tenant key. All reads, lists, updates, deletes, relationship traversal, uniqueness checks, and existing-record lookups must include tenant constraints.
 
 ## 4. Field model
 
-Fields must have stable names and explicit types. The first prototype should support at least:
+Fields must have stable names and explicit types. The first prototype should support:
 
 - UUID.
 - Text.
@@ -44,22 +43,13 @@ Fields must have stable names and explicit types. The first prototype should sup
 - Boolean.
 - Timestamp.
 - Enum-like text.
-- JSON value, if a safe validation strategy is specified.
+- JSON value only with explicit validation.
 
-Fields may declare:
-
-- Required or optional status.
-- Defaults.
-- Generated values.
-- Minimum and maximum length.
-- Numeric bounds.
-- Uniqueness.
-- Index participation.
-- Redaction behavior for audit and logs.
+Fields may declare required status, defaults, generated values, length bounds, numeric bounds, uniqueness, indexes, and redaction behavior.
 
 ## 5. API exposure
 
-Resources must explicitly list exposed operations. Supported first-prototype operations are:
+Resources expose only explicitly listed operations:
 
 - `create`.
 - `read`.
@@ -67,26 +57,26 @@ Resources must explicitly list exposed operations. Supported first-prototype ope
 - `update`.
 - `delete`.
 
-Operations not listed must not be generated.
+Unlisted operations must not be available.
 
 ## 6. Policy bindings
 
-Every exposed operation must bind to a policy. Missing policies must fail validation or produce deny-by-default behavior with a clear diagnostic.
+Every exposed operation must bind to a policy. Missing bindings must fail validation or deny access with a clear diagnostic.
 
 ## 7. Audit behavior
 
-Resources must define which events are audited. Security-relevant events should include create, update, delete, policy denial, and tenant-boundary failures.
+Resources must declare audited events. Security-relevant events should include create, update, delete, policy denial, and tenant-boundary failure.
 
 ## 8. Migration behavior
 
 Resource changes must be classified as:
 
-- Safe additive changes.
-- Potentially destructive changes.
-- Rename-like changes requiring explicit mapping.
-- Manual migration changes.
+- Safe additive.
+- Potentially destructive.
+- Rename-like and requiring explicit mapping.
+- Manual migration.
 
-Destructive changes must require an explicit plan warning and manual approval before application.
+Destructive changes require plan warnings and explicit approval before application.
 
 ## 9. Non-normative example
 
@@ -103,9 +93,7 @@ export const customer = resource({
     createdAt: timestamp().generated(),
     updatedAt: timestamp().generated(),
   },
-  api: {
-    operations: ["create", "read", "list", "update", "delete"],
-  },
+  api: { operations: ["create", "read", "list", "update", "delete"] },
   policies: {
     create: "customer.create",
     read: "customer.read",
@@ -113,10 +101,8 @@ export const customer = resource({
     update: "customer.update",
     delete: "customer.delete",
   },
-  audit: {
-    events: ["create", "update", "delete", "policy_denied"],
-  },
+  audit: { events: ["create", "update", "delete", "policy_denied"] },
 });
 ```
 
-This syntax is illustrative until the Phase 0 decision log accepts the first resource authoring format.
+The exact authoring format remains a Phase 0 decision.
