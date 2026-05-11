@@ -9,7 +9,7 @@ This document defines mandatory security requirements for Daicho specs, runtime 
 
 ## 2. Security posture
 
-Daicho must be secure by default. Convenience must not weaken authentication, authorization, tenancy, SQL safety, auditability, protected ingress, secret handling, runtime updateability, or supply-chain controls.
+Daicho must be secure by default. Convenience must not weaken authentication, identity lifecycle enforcement, authorization, tenancy, SQL safety, auditability, protected ingress, secret handling, runtime updateability, or supply-chain controls.
 
 ## 3. Default project requirements
 
@@ -18,6 +18,7 @@ Default projects must:
 - Avoid password login.
 - Avoid administrative GUIs.
 - Require a principal for requests.
+- Reject disabled, suspended, or deprovisioned principals.
 - Deny resource operations unless policy allows them.
 - Require every resource to declare tenancy.
 - Generate or use tenant-safe query helpers for tenant-scoped resources.
@@ -36,7 +37,7 @@ The Daicho CLI is not a product-user interface. Product users must access delive
 
 ## 5. Authentication
 
-The first identity mode is upstream trusted identity / no-login mode. It may trust identity headers only behind an explicitly configured trusted boundary and should prefer cryptographically verifiable access-layer evidence where available.
+The first identity mode is upstream trusted identity / no-login mode. It may trust identity headers only behind an explicitly configured trusted boundary and should prefer cryptographically verifiable access-layer evidence where available. The principal model must be compatible with enterprise SSO and provisioning from the beginning, even when production OIDC, SAML, passkey, or SCIM adapters are implemented later.
 
 The mode must define:
 
@@ -46,8 +47,9 @@ The mode must define:
 - Whether ingress is verified, trusted-network-only, or unverified.
 - Header-spoofing controls.
 - Behavior for absent or malformed identity.
+- Account lifecycle status such as active, disabled, suspended, or deprovisioned.
 
-OIDC, SAML, passkeys, service credentials, protected-ingress providers, and passwords are explicit adapters. Password authentication remains opt-in if implemented.
+OIDC, SAML, passkeys, service credentials, protected-ingress providers, SCIM-compatible provisioning, and passwords are explicit adapters. Password authentication remains opt-in if implemented. SCIM or directory synchronization must be able to disable or deprovision users without leaving stale sessions or service access active.
 
 ## 6. Authorization
 
@@ -104,7 +106,7 @@ If a secret affects review, output a redacted placeholder and safe metadata such
 
 ## 11. Audit
 
-Applications must write audit events for security-relevant operations. Audit records should include event ID, timestamp, correlation ID, principal ID, tenant ID when applicable, resource, operation, result, safe reason code, and redacted change summary.
+Applications must write audit events for security-relevant operations. Audit records should include event ID, timestamp, correlation ID, principal ID, tenant ID when applicable, resource, operation, result, safe reason code, and redacted change summary. Identity lifecycle events such as provisioning, group or role changes, disabling, suspension, and deprovisioning are security-relevant when the application receives or applies them.
 
 Audit persistence failures during mutations must have a specified failure policy. The default should fail closed for security-sensitive mutations.
 

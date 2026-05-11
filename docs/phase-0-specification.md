@@ -11,7 +11,7 @@ Phase 0 produces the smallest specification package needed to start the Phase 1 
 
 Phase 0 is complete when maintainers have accepted:
 
-- Product scope and non-goals.
+- Product scope and non-goals aligned to the enterprise foundation vision: SSO, SCIM-ready provisioning, audit, granular permissions, secure defaults, PostgreSQL, and declarative CRUD.
 - Runtime-library-first architecture.
 - AI-agent-first, command-capable developer workflow.
 - Web application and web API product-user delivery model.
@@ -19,6 +19,7 @@ Phase 0 is complete when maintainers have accepted:
 - Phase 1 CLI command set.
 - Resource and tenancy model.
 - Deny-by-default authorization model.
+- Identity lifecycle model for active, disabled, suspended, and deprovisioned principals.
 - Audit requirements.
 - SQL restrictions.
 - Deployment preparation and protected-ingress model.
@@ -54,7 +55,7 @@ Phase 1 assumes:
 - Product users consume the deliverable as a web application, web API, service integration, or background workflow, not through the Daicho CLI.
 - The runtime library enforces security invariants.
 - PostgreSQL is the system of record.
-- Upstream trusted identity is the first authentication mode.
+- Upstream trusted identity is the first authentication mode, with OIDC, SAML, passkeys, service credentials, and SCIM provisioning preserved as explicit adapter boundaries.
 - Password login and admin UI generation are absent by default.
 - Deployment is prepared for humans, not silently applied.
 - Non-local deployments prefer protected ingress and avoid direct public origin exposure.
@@ -83,6 +84,7 @@ Not required:
 Phase 1 must enforce or test:
 
 - Missing principal is rejected.
+- Disabled, suspended, or deprovisioned principals are rejected.
 - Tenant-scoped resources require tenant context.
 - Cross-tenant access fails.
 - Missing policy denies access.

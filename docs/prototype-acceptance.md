@@ -17,18 +17,19 @@ The prototype passes when a developer or AI-agent-oriented command-line demo can
 4. Validate resources, tenancy, policy bindings, package-manager state, SBOM generation, and vulnerability scan inputs.
 5. Export OpenAPI, JSON Schema, TypeScript model types, and generated SQL migration artifacts.
 6. Start PostgreSQL and the application locally.
-7. Simulate upstream trusted identity.
-8. Create, read, list, update, and delete customer records.
-9. Prove cross-tenant reads and writes fail.
-10. Prove missing or denying policies block access.
-11. Prove audit events are written.
-12. Demonstrate that a destructive migration plan cannot be applied without checksum-bound human approval.
-13. Generate a CycloneDX SBOM and run vulnerability scanning from the command line.
-14. Run all tests from the command line.
-15. Serve the resource through a web API without requiring product users to run the Daicho CLI.
-16. Produce Docker Compose deployment files and a redacted plan.
-17. Document protected-ingress assumptions and warn against direct public origin exposure.
-18. Record how the application links to the Daicho runtime, including exact version or commit identity.
+7. Simulate upstream trusted identity with active and disabled account states using a principal shape compatible with future SAML assertions and SCIM provisioning events.
+8. Prove disabled principals are rejected before resource policy evaluation.
+9. Create, read, list, update, and delete customer records.
+10. Prove cross-tenant reads and writes fail.
+11. Prove missing or denying policies block access.
+12. Prove audit events are written for CRUD, authorization denial, and disabled-principal rejection.
+13. Demonstrate that a destructive migration plan cannot be applied without checksum-bound human approval.
+14. Generate a CycloneDX SBOM and run vulnerability scanning from the command line.
+15. Run all tests from the command line.
+16. Serve the resource through a web API without requiring product users to run the Daicho CLI.
+17. Produce Docker Compose deployment files and a redacted plan.
+18. Document protected-ingress assumptions and warn against direct public origin exposure.
+19. Record how the application links to the Daicho runtime, including exact version or commit identity.
 
 ## 3. Required checks
 
@@ -40,6 +41,7 @@ The prototype must check:
 - Migration presence and safety classification.
 - Tenant-safe query behavior.
 - Deny-by-default authorization.
+- Disabled-principal rejection before policy evaluation using SAML/SCIM-compatible principal and lifecycle fields.
 - Policy tests.
 - Structured logs.
 - Audit records.
@@ -58,6 +60,7 @@ The prototype must check:
 The demo must show that:
 
 - Requests without identity fail.
+- Disabled, suspended, or deprovisioned principals fail before policy evaluation.
 - Tenant-scoped requests without tenant context fail.
 - Cross-tenant record access fails.
 - Missing policy bindings fail validation or deny access.
@@ -78,7 +81,7 @@ A passing prototype must provide:
 - SBOM and vulnerability scan output.
 - Test output.
 - Example HTTP requests and responses.
-- Example audit records.
+- Example audit records, including a disabled-principal rejection event.
 - Example redacted plan output.
 - Docker Compose files.
 - Protected-ingress notes or diagnostics.

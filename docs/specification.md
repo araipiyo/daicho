@@ -5,7 +5,7 @@ Phase: 0
 
 ## 1. Purpose
 
-Daicho is a security-first, text-first TypeScript framework for AI-era operational systems and CRUD APIs. It assumes developers use AI coding agents such as Codex or Claude Code with source files, reviewable diffs, CLI checks, generated artifacts, tests, and CI/CD instead of GUI-first admin tooling.
+Daicho is a security-first, text-first TypeScript framework for AI-era enterprise operational systems and CRUD APIs. Its existence value is to start where enterprise buyers start asking hard questions: SAML, SCIM, auditability, granular permissions, secure defaults, PostgreSQL durability, deployment discipline, and operational trust. It assumes developers use AI coding agents such as Codex or Claude Code with source files, reviewable diffs, CLI checks, generated artifacts, tests, and CI/CD instead of GUI-first admin tooling.
 
 Phase 0 defines the implementation-ready specification set. Phase 1 proves the first prototype.
 
@@ -17,9 +17,9 @@ Daicho must:
 - Be usable without a development GUI or default administrative GUI.
 - Be secure by default and deny by default.
 - Disable password login by default.
-- Support upstream trusted identity / no-login mode first.
+- Support upstream trusted identity / no-login mode first while keeping OIDC, SAML, passkeys, service credentials, and SCIM provisioning as first-class adapter boundaries.
 - Use PostgreSQL as the first transactional database.
-- Treat tenancy, policy, audit, and SQL safety as framework invariants.
+- Treat identity lifecycle, tenancy, policy, audit, and SQL safety as framework invariants.
 - Emit deterministic, reviewable source, SQL, OpenAPI, JSON Schema, plans, and diagnostics.
 - Avoid a proprietary hosted control plane requirement.
 - Deliver user-facing functionality as web applications, web APIs, background jobs, or integrations; end users must not need the Daicho CLI.
@@ -31,7 +31,7 @@ Phase 1 must provide:
 
 - A clone-first starter project with AI-facing Markdown instructions and clear ownership boundaries.
 - Canonical resource JSON and policy JSON validated by strict schemas.
-- A runtime library that enforces identity, tenancy, policy, SQL safety, and audit rules.
+- A runtime library that enforces identity, account lifecycle state, tenancy, policy, SQL safety, and audit rules.
 - A CLI for developer, AI-agent, CI, and limited operator workflows such as validation, tests, exports, deployment preparation, and diagnostics.
 - A web application or web API delivery path for product users.
 - PostgreSQL migrations committed as reviewable SQL source with checksum-bound destructive-change approval.
@@ -58,7 +58,7 @@ Product users consume Daicho-built deliverables through web applications, web AP
 
 Phase 1 commands:
 
-- `daicho check`: validate resources, policies, tenancy, configuration, and dependency risk.
+- `daicho check`: validate resources, policies, tenancy, identity and provisioning configuration, and dependency risk.
 - `daicho test`: run project tests and Daicho security checks.
 - `daicho export`: write OpenAPI and JSON Schema artifacts.
 - `daicho deploy prepare`: prepare deployment files, plans, and instructions without applying infrastructure.
@@ -71,13 +71,14 @@ Commands that can affect data or deployment must support dry-run or plan output.
 The runtime must:
 
 - Reject requests without a valid principal.
+- Reject disabled, suspended, or deprovisioned principals before resource policy evaluation.
 - Require tenant context for tenant-scoped resources.
 - Evaluate policy before mutation or broad data access.
 - Deny missing policies.
 - Prevent cross-tenant reads and writes by construction.
 - Route resource database access through Daicho-approved helpers.
 - Disable raw SQL escape hatches by default and allow custom SQL only through approved tagged-template helpers.
-- Write audit events for security-relevant operations.
+- Write audit events for security-relevant operations, including identity lifecycle and authorization decisions.
 - Redact secrets from logs, plans, errors, examples, and manifests.
 
 ## 7. Resource requirements
@@ -171,6 +172,5 @@ These may wait until after the prototype if documented:
 - Cloud-specific deployment templates.
 - Provider-specific ingress verification adapters.
 - PostgreSQL row-level security automation.
-- Adapter order after upstream trusted identity.
-- Provider-specific ingress verification adapters.
+- Adapter order after upstream trusted identity, including OIDC, SAML, passkeys, service credentials, and SCIM provisioning.
 - Final post-Phase 1 runtime distribution and linkage mechanism.

@@ -12,8 +12,8 @@ This document lists the threats the Phase 1 prototype must address or explicitly
 Daicho must protect:
 
 - Tenant business data.
-- Principal identities and service credentials.
-- Authorization policies.
+- Principal identities, account lifecycle state, and service credentials.
+- Authorization policies and permission bindings.
 - Audit records.
 - Migration files.
 - Generated or starter source code.
@@ -35,7 +35,7 @@ Important boundaries are:
 - Client to upstream identity or protected access layer.
 - Access layer to origin application.
 - Application to PostgreSQL.
-- Application to optional adapters.
+- Application to optional adapters, including identity and provisioning adapters.
 - Developer workstation to package registry.
 - CI/CD to deployment platform.
 - Daicho templates to user projects.
@@ -47,8 +47,9 @@ Important boundaries are:
 | --- | --- | --- |
 | Cross-tenant data access | Critical | Tenant-aware helpers, policy tests, repository constraints |
 | SQL injection | Critical | Parameter binding, safe identifiers, restricted raw SQL |
-| Authorization bypass | Critical | Deny-by-default policies, generated policy calls, negative tests |
+| Authorization bypass | Critical | Deny-by-default policies, generated policy calls, fine-grained permission checks, negative tests |
 | Spoofed upstream identity headers | High | Trusted-boundary config, signed or mTLS ingress proof where available, header validation, deployment guidance |
+| Stale access for disabled or deprovisioned users | High | Account lifecycle state in principal normalization, session invalidation guidance, SCIM/directory sync adapter boundary, audit events |
 | Secret leakage | High | Redaction rules, structured logging, snapshot tests |
 | Compromised dependency | High | Minimal dependencies, lockfiles, vulnerability checks, SBOM path |
 | Template tampering | High | Review process, integrity checks, provenance markers |
@@ -63,7 +64,7 @@ Important boundaries are:
 
 High-priority threats must map to tests or review gates:
 
-- Unit tests for policy decisions.
+- Unit tests for policy decisions and disabled-principal rejection.
 - Integration tests for tenant isolation.
 - SQL tests for parameter binding.
 - Snapshot tests for redacted plans.
@@ -79,7 +80,7 @@ High-priority threats must map to tests or review gates:
 The first prototype may defer:
 
 - Full PostgreSQL row-level security generation.
-- Production OIDC, SAML, and passkey adapters.
+- Production OIDC, SAML, passkey, and SCIM provisioning adapters.
 - Provider-specific protected-ingress adapters beyond the first upstream trusted identity proof.
 - Multi-database tenant partitioning.
 - Formal verification of policy logic.

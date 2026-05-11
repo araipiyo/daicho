@@ -4,7 +4,7 @@
 >
 > Vibe-code enterprise apps in a day.
 
-Daicho is an AI-first framework for shipping enterprise-ready internal applications in a day.
+Daicho is an AI-first framework for shipping enterprise-ready operational applications in a day.
 
 It gives AI agents a secure application shell with SAML, SCIM, audit logs,
 fine-grained permissions, PostgreSQL, and declarative CRUD.
@@ -109,9 +109,9 @@ Daicho is not intended to be:
                                       |
                                       v
 +----------------------+      +-----------------------+
-| Identity Providers   | ---> | Application Runtime   |
-| OIDC, SAML, Passkey  |      | TypeScript services,  |
-| enterprise SSO       |      | APIs, jobs, policies  |
+| Identity / Provision | ---> | Application Runtime   |
+| OIDC, SAML, Passkey, |      | TypeScript services,  |
+| SCIM, enterprise SSO |      | APIs, jobs, policies  |
 +----------------------+      +-----------+-----------+
                                       |
                                       v
@@ -205,7 +205,7 @@ Required support:
 - OIDC / OAuth 2.0 provider integration.
 - SAML 2.0 provider integration for enterprise SSO.
 - Passkey / WebAuthn support.
-- SCIM-compatible identity provisioning as a future capability.
+- SCIM-compatible identity provisioning and deprovisioning for enterprise user lifecycle automation.
 - Session management with secure cookies where browser clients are used.
 - Service-to-service authentication for automation and agents.
 
@@ -215,8 +215,9 @@ Default posture:
 - The first implementation should work without an in-app login screen when a trusted external access layer provides identity and access control.
 - Local password authentication, if implemented, must be an explicit opt-in module.
 - MFA requirements should be delegated to identity providers when possible.
-- Identity claims must be normalized before policy evaluation.
-- Built-in OIDC, SAML, and passkey adapters may follow after the upstream trusted identity mode.
+- Identity claims and account lifecycle state must be normalized before policy evaluation.
+- Disabled or deprovisioned users must be rejected before resource policy evaluation.
+- Built-in OIDC, SAML, passkey, and SCIM adapters may follow after the upstream trusted identity mode, but their interfaces must be first-class design constraints from the beginning.
 
 ### 5. Authorization
 
@@ -225,11 +226,11 @@ Authorization should be policy-driven and testable.
 The first implementation should support:
 
 - Role-based access control for simple cases.
-- Attribute-based checks for tenant, ownership, and workflow state.
+- Attribute-based checks for tenant, ownership, identity lifecycle state, and workflow state.
 - Resource-level CRUD policies.
 - Field-level read/write restrictions where feasible.
 - Deny-by-default behavior.
-- Policy test fixtures.
+- Policy test fixtures, including disabled-user and cross-tenant denial cases.
 
 Authorization must not depend on generated UI assumptions.
 
@@ -380,7 +381,7 @@ daicho/
 - Define migration strategy.
 - Define supported deployment targets.
 
-### Phase 1: Minimal CLI and runtime prototype
+### Phase 1: Minimal enterprise foundation prototype
 
 - Clone-first starter project with AI-facing Markdown instructions.
 - Canonical strict JSON resource definitions under `resources/*.resource.json`.
@@ -389,17 +390,20 @@ daicho/
 - Basic HTTP CRUD API generation.
 - Minimal approved tagged-template custom SQL helper and generated query helpers that parameterize values and allow-list identifiers.
 - Tenant-scoped query enforcement.
-- Structured logging.
-
-### Phase 2: Secure identity and policy engine
-
 - Upstream trusted identity / no-login mode for deployments protected by Cloudflare Access or an equivalent external access layer.
+- Account lifecycle state in the principal model, including disabled-user rejection.
+- Deny-by-default authorization, policy tests, and audit event model.
+- Structured logging.
+- Docker Compose deployment preparation and protected-ingress diagnostics.
+
+### Phase 2: Enterprise identity and policy adapters
+
 - OIDC integration.
-- SAML integration design and adapter boundary.
+- SAML integration and adapter boundary.
+- SCIM-compatible provisioning and deprovisioning adapter boundary.
 - Passkey integration design.
-- Deny-by-default authorization.
-- Policy test runner.
-- Audit event model.
+- Service-to-service credential adapters.
+- Richer fine-grained permission helpers and policy test runner improvements.
 
 ### Phase 3: Deployment templates
 
@@ -426,7 +430,7 @@ daicho/
 - **Package and runtime baseline**: use Corepack-pinned `pnpm`, Node.js `>=24 <25`, and PostgreSQL `>=17 <19` with PostgreSQL 18 preferred.
 - **SBOM and vulnerability scanning**: generate CycloneDX JSON with `@cyclonedx/cdxgen`, scan with OSV-Scanner, and also run package-manager native audit signals where available.
 - **PostgreSQL row-level security**: RLS generation is not required for the first prototype. It should remain a future optional capability.
-- **First identity mode**: implement a no-login / upstream trusted identity mode first, assuming deployments can be protected by Cloudflare Access or an equivalent external access layer. OIDC, SAML, and passkeys can follow as explicit adapters.
+- **First identity mode**: implement a no-login / upstream trusted identity mode first, assuming deployments can be protected by Cloudflare Access or an equivalent external access layer. OIDC, SAML, passkeys, and SCIM provisioning can follow as explicit adapters, but the principal and account-lifecycle model must not block those enterprise integrations.
 - **Minimum viable deployment target**: provide Docker Compose or an equivalent local container setup first so teams can test Daicho easily.
 - **Optional UI generation**: Daicho itself may not need a management UI. Generated applications should be manageable through APIs, CLIs, and application-specific workflows; any optional UI generator should be separate from the core runtime unless a strong reason emerges.
 

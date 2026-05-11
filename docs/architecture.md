@@ -14,6 +14,7 @@ Daicho must be:
 - AI-agent-first and command-capable for development, with humans reviewing source, plans, tests, and diffs.
 - GUI-free for development and free of any default administrative GUI.
 - Secure by default and explicit about security-sensitive behavior.
+- Enterprise-foundation-first, with SSO, provisioning, audit, fine-grained permissions, and operational trust designed into the runtime boundaries.
 - Text-first, deterministic, and review-friendly.
 - PostgreSQL-centered for data, migrations, tenancy, and audit.
 - Portable across local containers, managed PostgreSQL, Kubernetes, and cloud container platforms.
@@ -40,7 +41,7 @@ Product users interact with Daicho-built applications through web applications, 
 
 A project must contain explicit source files for:
 
-- Configuration.
+- Configuration, including identity, provisioning, and protected-ingress modes.
 - Resources as strict canonical JSON.
 - Policies as strict JSON policy bindings.
 - Policy and integration tests.
@@ -85,13 +86,14 @@ A request must flow in this order:
 1. Parse metadata and correlation ID.
 2. Validate the configured ingress trust boundary when the identity mode depends on upstream trusted identity.
 3. Extract principal from configured identity mode.
-4. Resolve tenant context.
-5. Validate request shape.
-6. Evaluate policy.
-7. Execute tenant-safe database work, using a transaction for mutations.
-8. Persist audit events.
-9. Emit structured logs.
-10. Return a structured response or error.
+4. Resolve account lifecycle state and reject disabled, suspended, or deprovisioned principals.
+5. Resolve tenant context.
+6. Validate request shape.
+7. Evaluate policy.
+8. Execute tenant-safe database work, using a transaction for mutations.
+9. Persist audit events.
+10. Emit structured logs.
+11. Return a structured response or error.
 
 ## 9. PostgreSQL boundary
 
@@ -112,7 +114,7 @@ Generated or starter code must not concatenate untrusted values into SQL.
 
 Policies must be called through a stable interface with:
 
-- Principal.
+- Principal and account lifecycle state.
 - Tenant context.
 - Resource name.
 - Operation.
@@ -126,7 +128,7 @@ Policies return allow or deny with safe reason codes for audit.
 
 Adapters are optional modules. The core runtime must not require a hosted Daicho service.
 
-Adapter categories include identity providers, protected ingress providers, object storage, queues, email, deployment targets, and observability exporters. Each adapter must declare configuration, secrets, capabilities, trust assumptions, and failure behavior.
+Adapter categories include identity providers such as OIDC, SAML, passkey, and service-token adapters; SCIM-compatible provisioning providers; protected ingress providers; object storage; queues; email; deployment targets; and observability exporters. Each adapter must declare configuration, secrets, capabilities, trust assumptions, and failure behavior.
 
 ## 12. Protected ingress boundary
 
@@ -148,9 +150,9 @@ Generated applications must provide:
 - Secret redaction.
 - Health endpoint.
 - Readiness endpoint.
-- Audit records for security-relevant events.
+- Audit records for security-relevant events, including identity lifecycle and authorization decisions.
 - Ingress trust diagnostics that report whether runtime identity is verified, trusted-network-only, or unverified.
 
 ## 15. Acceptance
 
-The architecture is acceptable when it explains one tenant-scoped CRUD request from HTTP ingress through identity, tenant resolution, policy, SQL, audit, logs, and response serialization without a GUI, hidden service, product-user CLI step, or directly exposed origin dependency.
+The architecture is acceptable when it explains one tenant-scoped CRUD request from HTTP ingress through identity, account lifecycle enforcement, tenant resolution, policy, SQL, audit, logs, and response serialization without a GUI, hidden service, product-user CLI step, or directly exposed origin dependency.

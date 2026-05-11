@@ -45,7 +45,7 @@ Consequence: Migrations, tenancy, audit, and query safety focus on PostgreSQL fi
 
 Status: Accepted
 Decision: The first identity mode is no-login / upstream trusted identity.
-Consequence: Password login is excluded from the default starter; OIDC, SAML, passkeys, service credentials, and passwords remain explicit adapters.
+Consequence: Password login is excluded from the default starter; OIDC, SAML, passkeys, service credentials, SCIM-compatible provisioning, and passwords remain explicit adapters.
 
 ### D0005: Deny-by-default authorization
 
@@ -154,6 +154,16 @@ Context: Destructive changes must not be applied silently. The migration tool al
 Decision: Phase 1 uses Daicho-generated SQL migration files from canonical resource JSON, applied by a small Daicho migration runner that records applied migrations and checksums in PostgreSQL. Kysely migration primitives may be used internally if they reduce implementation risk, but the human-reviewed artifact remains SQL. Destructive migrations require a plan that classifies the operation, shows affected tables/columns/indexes without secrets, names backup/rollback expectations, and refuses apply unless a human creates an approval file or passes an explicit approval token matching the migration checksum. AI agents may prepare plans but must not auto-approve destructive migrations.
 Consequence: D0101 and D0108 share one source of truth: resource JSON produces reviewable SQL, and Daicho owns destructive analysis instead of delegating it blindly to a general migration library.
 Alternatives considered: Drizzle migrations were considered but would make TypeScript schema a competing source of truth. node-pg-migrate was considered for imperative migrations but does not itself solve Daicho resource metadata or destructive approval. Direct hand-written SQL remains allowed for manual migrations but must go through the same checksum, plan, review, and approval flow.
+Date accepted: 2026-05-11.
+Owners or reviewers: Maintainers.
+
+### D0112: Enterprise identity lifecycle boundary
+
+Status: Accepted
+Context: Daicho's value proposition depends on starting with the enterprise controls AI-generated applications usually lack: SSO, provisioning, auditability, granular authorization, and automatic user disablement. Phase 1 still begins with upstream trusted identity so the prototype stays small.
+Decision: The Phase 1 principal model must include account lifecycle state and must reject disabled, suspended, or deprovisioned principals before resource policy evaluation. OIDC, SAML, passkeys, service credentials, and SCIM-compatible provisioning remain explicit adapters, but their data requirements must shape the runtime interfaces, audit events, diagnostics, and tests from the beginning.
+Consequence: The first prototype can avoid production SAML or SCIM while still proving the foundation needed for enterprise identity and lifecycle automation.
+Alternatives considered: Treating SCIM and SAML as post-prototype topics was rejected because it risks a principal model that cannot later support enterprise provisioning or SSO without breaking changes.
 Date accepted: 2026-05-11.
 Owners or reviewers: Maintainers.
 
