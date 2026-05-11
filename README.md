@@ -42,7 +42,7 @@ Daicho is not intended to be:
 2. **No development GUI**: visual development tools are out of scope. The source of truth must remain code, schemas, migrations, policies, and tests.
 3. **No default administrative GUI**: generated management screens are not a default feature. Operators should use APIs, CLIs, auditable workflows, and optional separately maintained UIs only when truly required; product users should not need the Daicho CLI.
 4. **Security first, secure by default**: generators, runtime paths, adapters, and templates must prefer explicit, reviewable, least-privilege behavior. Password login must be disabled by default, unsafe SQL construction must be prevented, and cross-tenant access must be blocked by construction. SSO, SAML, OIDC, passkeys, and upstream trusted identity modes must be first-class over time.
-5. **PostgreSQL as the system of record**: PostgreSQL is the primary database target for transactional data, migrations, row-level policies, and audit records.
+5. **PostgreSQL as the system of record**: PostgreSQL is the primary database target for transactional data, generated or reviewed SQL migrations, tenancy checks, and audit records.
 6. **Multi-cloud and portable**: deployments should work across major clouds and self-hosted environments using open standards and minimal provider lock-in.
 7. **Protected ingress by default**: deliver web applications and APIs behind Cloudflare Access, Tailscale, identity-aware proxies, API gateways, private service meshes, or equivalent controls rather than exposing origin servers directly.
 8. **Minimal dependencies**: prefer the platform, small internal modules, and carefully selected dependencies. Every dependency must justify its operational and supply-chain risk.
@@ -343,11 +343,12 @@ daicho/
 
 ### Phase 1: Minimal CLI and runtime prototype
 
-- Project initializer.
-- One resource definition format: TypeScript, YAML/JSON, or both are acceptable if the selected format is deterministic and statically analyzable.
-- PostgreSQL migration generation.
+- Clone-first starter project with AI-facing Markdown instructions.
+- Canonical strict JSON resource definitions under `resources/*.resource.json`.
+- Strict JSON policy bindings under `policies/*.policy.json`.
+- PostgreSQL SQL migration generation with destructive-change approval plans.
 - Basic HTTP CRUD API generation.
-- Minimal safe query builder or equivalent security guardrail for generated SQL.
+- Minimal approved tagged-template custom SQL helper and generated query helpers that parameterize values and allow-list identifiers.
 - Tenant-scoped query enforcement.
 - Structured logging.
 
@@ -371,7 +372,7 @@ daicho/
 
 ### Phase 4: Hardening
 
-- Supply-chain security checks.
+- Supply-chain security checks using pinned `pnpm`, frozen lockfiles, CycloneDX SBOM generation, OSV-Scanner, and package-manager native audit signals.
 - Release signing and provenance.
 - SBOM publishing.
 - Performance benchmarks.
@@ -380,8 +381,11 @@ daicho/
 
 ## Resolved design decisions
 
-- **First schema format**: TypeScript, YAML/JSON, or both are acceptable. The chosen implementation must remain text-first, deterministic, statically analyzable, and reviewable.
-- **SQL generation strategy**: Daicho should include at least a minimal internal query builder or equivalent guardrail for security-critical SQL construction. Security and tenant invariants matter more than avoiding all abstraction.
+- **First resource format**: strict canonical JSON under `resources/*.resource.json`, validated by JSON Schema, is the Phase 1 source of truth. Generated SQL, TypeScript model types, OpenAPI, and JSON Schema are outputs.
+- **First policy format**: strict Daicho-owned JSON policy bindings under `policies/*.policy.json`, with a small expression vocabulary and deny-by-default missing/unsupported behavior.
+- **SQL and migrations**: generated or reviewed SQL is the human-facing migration artifact. Custom SQL must use an approved tagged-template helper; destructive migrations require checksum-bound human approval. Kysely is the first TypeScript query-builder candidate to evaluate for richer composition.
+- **Package and runtime baseline**: use Corepack-pinned `pnpm`, Node.js `>=24 <25`, and PostgreSQL `>=17 <19` with PostgreSQL 18 preferred.
+- **SBOM and vulnerability scanning**: generate CycloneDX JSON with `@cyclonedx/cdxgen`, scan with OSV-Scanner, and also run package-manager native audit signals where available.
 - **PostgreSQL row-level security**: RLS generation is not required for the first prototype. It should remain a future optional capability.
 - **First identity mode**: implement a no-login / upstream trusted identity mode first, assuming deployments can be protected by Cloudflare Access or an equivalent external access layer. OIDC, SAML, and passkeys can follow as explicit adapters.
 - **Minimum viable deployment target**: provide Docker Compose or an equivalent local container setup first so teams can test Daicho easily.

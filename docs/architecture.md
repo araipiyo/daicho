@@ -1,6 +1,6 @@
 # Daicho Architecture Specification
 
-Status: Draft 0.3
+Status: Draft 0.4
 Phase: 0
 
 ## 1. Purpose
@@ -41,8 +41,8 @@ Product users interact with Daicho-built applications through web applications, 
 A project must contain explicit source files for:
 
 - Configuration.
-- Resources.
-- Policies.
+- Resources as strict canonical JSON.
+- Policies as strict JSON policy bindings.
 - Policy and integration tests.
 - Environment templates.
 - Deployment templates or target configuration.
@@ -98,9 +98,11 @@ A request must flow in this order:
 PostgreSQL is the system of record. The database layer must provide:
 
 - Parameterized SQL execution.
+- Safe tagged-template custom SQL with generated or allow-listed identifiers only.
 - Safe generated identifier handling.
 - Tenant-aware query construction.
-- Source-controlled migrations.
+- Source-controlled SQL migrations generated from canonical resource JSON or explicitly reviewed manual SQL.
+- Destructive migration plan classification and checksum-bound human approval.
 - Transaction boundaries for mutations.
 - Audit persistence.
 

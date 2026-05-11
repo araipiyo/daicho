@@ -1,6 +1,6 @@
 # Daicho Security Specification
 
-Status: Draft 0.3
+Status: Draft 0.4
 Phase: 0
 
 ## 1. Purpose
@@ -22,6 +22,7 @@ Default projects must:
 - Require every resource to declare tenancy.
 - Generate or use tenant-safe query helpers for tenant-scoped resources.
 - Use parameterized SQL or an equivalent safe query builder.
+- Validate canonical resource JSON and policy JSON before generation, export, migration planning, or deployment preparation.
 - Redact secrets from logs, plans, errors, and manifests.
 - Include command-line security checks for developers, AI agents, CI, and operators.
 - Expose product functionality through web applications, web APIs, or service interfaces rather than requiring product users to run the Daicho CLI.
@@ -71,7 +72,7 @@ For `tenant_scoped` resources, tenant constraints must apply to reads, lists, up
 
 Generated and starter code must not interpolate untrusted values into SQL strings. Values use parameter binding. Identifiers use generated or allow-listed safe handling.
 
-Custom SQL escape hatches must be explicit, searchable, tested, reviewed for tenant constraints, and absent from default paths.
+Custom SQL escape hatches are disabled by default. The minimum approved escape hatch is a tagged-template helper that parameterizes values and only accepts generated or allow-listed identifier tokens. It may concatenate only already-tokenized SQL fragments. Each use must be explicit, searchable, tested, reviewed for tenant constraints, and absent from default paths. Kysely is the preferred TypeScript query-builder candidate for future richer SQL composition; generated or reviewed SQL remains the human-facing migration artifact for Phase 1.
 
 ## 9. Protected ingress and origin exposure
 
@@ -107,7 +108,23 @@ Applications must write audit events for security-relevant operations. Audit rec
 
 Audit persistence failures during mutations must have a specified failure policy. The default should fail closed for security-sensitive mutations.
 
-## 12. Runtime linkage and update security
+## 12. Migration safety
+
+Resource changes must produce a migration plan before any database change is applied. Plans must classify each change as safe additive, potentially destructive, rename-like, or manual. Potentially destructive and manual changes require explicit human approval tied to the migration checksum; AI agents may prepare the plan but must not auto-approve it.
+
+The migration runner must record applied migration names and checksums in PostgreSQL and refuse to apply a migration whose committed checksum differs from the recorded checksum unless a documented repair procedure is followed.
+
+## 13. Supply-chain security
+
+Phase 1 projects use `pnpm` with an exact Corepack-pinned package-manager version and a committed lockfile. CI must install with a frozen lockfile. Lifecycle scripts should be disabled for security checks where practical, and required scripts must be documented and allow-listed.
+
+Projects must generate CycloneDX JSON SBOMs with `@cyclonedx/cdxgen`, scan lockfiles and SBOMs with OSV-Scanner, and run the package-manager native audit path where available. Known critical vulnerabilities fail CI unless a reviewed, time-limited exception is committed.
+
+## 14. Runtime and database security baseline
+
+Phase 1 production and CI use Node.js `>=24 <25`. PostgreSQL `>=17 <19` is supported, with PostgreSQL 18 preferred and PostgreSQL 17 accepted for managed-provider compatibility. Deployments must track the latest security patch or minor release for the selected major line.
+
+## 15. Runtime linkage and update security
 
 Phase 1 may place the Daicho runtime in the clone-first starter repository, but projects must keep a clear boundary between framework-owned runtime code and application-owned code. Security-critical runtime internals must be imported through stable APIs rather than copied into application code.
 
@@ -115,22 +132,22 @@ The preferred future model is a separately versioned runtime dependency with imm
 
 A runtime linkage model must document how vulnerable runtime versions are detected, how patches are distributed, and how applications prove which runtime version or commit they are using.
 
-## 13. Supply chain
+## 16. Supply chain
 
 Generated or starter projects must include:
 
 - Lockfile enforcement.
 - Minimal dependencies.
 - Dependency review guidance.
-- Vulnerability scanning path.
-- SBOM generation path.
+- Vulnerability scanning path using OSV-Scanner and package-manager native audit signals.
+- SBOM generation path using CycloneDX JSON.
 - Release signing guidance.
 - Template integrity expectations.
 - Runtime version, provenance, and integrity expectations.
 
 Dependencies affecting authentication, authorization, SQL, cryptography, or deployment require heightened review.
 
-## 14. Acceptance
+## 17. Acceptance
 
 Phase 1 code must prove:
 
@@ -144,3 +161,6 @@ Phase 1 code must prove:
 - Deployment templates discourage direct public origin exposure.
 - Runtime linkage records an exact version or commit and update path.
 - Audit events are emitted for allowed and denied security-relevant operations.
+- Resource and policy JSON validation fails closed for unknown keys and unsupported expressions.
+- Destructive migrations require checksum-bound human approval.
+- Supply-chain checks generate an SBOM and scan dependencies before release.

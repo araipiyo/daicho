@@ -1,6 +1,6 @@
 # Daicho Framework Specification
 
-Status: Draft 0.3
+Status: Draft 0.4
 Phase: 0
 
 ## 1. Purpose
@@ -29,11 +29,12 @@ Daicho must:
 
 Phase 1 must provide:
 
-- A clone-first starter project.
+- A clone-first starter project with AI-facing Markdown instructions and clear ownership boundaries.
+- Canonical resource JSON and policy JSON validated by strict schemas.
 - A runtime library that enforces identity, tenancy, policy, SQL safety, and audit rules.
 - A CLI for developer, AI-agent, CI, and limited operator workflows such as validation, tests, exports, deployment preparation, and diagnostics.
 - A web application or web API delivery path for product users.
-- PostgreSQL migrations committed as source.
+- PostgreSQL migrations committed as reviewable SQL source with checksum-bound destructive-change approval.
 - OpenAPI and JSON Schema exports.
 - Docker Compose deployment support and a human deployment checklist.
 - Structured logs, health checks, readiness checks, and redacted plans.
@@ -75,7 +76,7 @@ The runtime must:
 - Deny missing policies.
 - Prevent cross-tenant reads and writes by construction.
 - Route resource database access through Daicho-approved helpers.
-- Disable raw SQL escape hatches by default.
+- Disable raw SQL escape hatches by default and allow custom SQL only through approved tagged-template helpers.
 - Write audit events for security-relevant operations.
 - Redact secrets from logs, plans, errors, examples, and manifests.
 
@@ -91,6 +92,8 @@ Every resource must declare:
 - Exposed operations.
 - Policy bindings.
 - Audit behavior.
+
+Resource source files must be strict JSON under `resources/*.resource.json`; generated SQL, TypeScript model types, OpenAPI, and JSON Schema are outputs, not the source of truth.
 
 Tenant-scoped resources must include tenant constraints in generated or framework-provided queries.
 
@@ -155,6 +158,9 @@ Phase 0 can close when maintainers accept:
 - Deployment templates, protected-origin guidance, and human checklist.
 - Developer CLI scope and product-user web/API scope.
 - Runtime linkage model.
+- Resource and policy authoring formats.
+- Package manager, supported runtime/database versions, SBOM, and vulnerability scanning choices.
+- Destructive migration approval workflow.
 - Single end-to-end prototype scenario.
 
 ## 12. Deferred questions
@@ -165,7 +171,6 @@ These may wait until after the prototype if documented:
 - Cloud-specific deployment templates.
 - Provider-specific ingress verification adapters.
 - PostgreSQL row-level security automation.
-- Safe custom SQL extension model.
 - Adapter order after upstream trusted identity.
-- Default package manager, SBOM tool, and vulnerability scanner.
+- Provider-specific ingress verification adapters.
 - Final post-Phase 1 runtime distribution and linkage mechanism.

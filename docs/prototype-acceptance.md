@@ -1,6 +1,6 @@
 # Daicho Prototype Acceptance Plan
 
-Status: Draft 0.3
+Status: Draft 0.4
 Phase: 0
 
 ## 1. Purpose
@@ -12,26 +12,31 @@ This document defines the acceptance criteria for the first Daicho prototype, in
 The prototype passes when a developer or AI-agent-oriented command-line demo can:
 
 1. Use the clone-first starter project.
-2. Define one tenant-scoped `customer` resource.
-3. Validate resources, tenancy, and policy bindings.
-4. Export OpenAPI and JSON Schema.
-5. Start PostgreSQL and the application locally.
-6. Simulate upstream trusted identity.
-7. Create, read, list, update, and delete customer records.
-8. Prove cross-tenant reads and writes fail.
-9. Prove missing or denying policies block access.
-10. Prove audit events are written.
-11. Run all tests from the command line.
-12. Serve the resource through a web API without requiring product users to run the Daicho CLI.
-13. Produce Docker Compose deployment files and a redacted plan.
-14. Document protected-ingress assumptions and warn against direct public origin exposure.
-15. Record how the application links to the Daicho runtime, including exact version or commit identity.
+2. Define one tenant-scoped `customer` resource in strict canonical JSON.
+3. Define operation policies in strict policy JSON.
+4. Validate resources, tenancy, policy bindings, package-manager state, SBOM generation, and vulnerability scan inputs.
+5. Export OpenAPI, JSON Schema, TypeScript model types, and generated SQL migration artifacts.
+6. Start PostgreSQL and the application locally.
+7. Simulate upstream trusted identity.
+8. Create, read, list, update, and delete customer records.
+9. Prove cross-tenant reads and writes fail.
+10. Prove missing or denying policies block access.
+11. Prove audit events are written.
+12. Demonstrate that a destructive migration plan cannot be applied without checksum-bound human approval.
+13. Generate a CycloneDX SBOM and run vulnerability scanning from the command line.
+14. Run all tests from the command line.
+15. Serve the resource through a web API without requiring product users to run the Daicho CLI.
+16. Produce Docker Compose deployment files and a redacted plan.
+17. Document protected-ingress assumptions and warn against direct public origin exposure.
+18. Record how the application links to the Daicho runtime, including exact version or commit identity.
 
 ## 3. Required checks
 
 The prototype must check:
 
-- Resource validation.
+- Resource JSON validation.
+- Policy JSON validation.
+- Generated artifact freshness.
 - Migration presence and safety classification.
 - Tenant-safe query behavior.
 - Deny-by-default authorization.
@@ -45,6 +50,8 @@ The prototype must check:
 - Protected-ingress configuration classification: verified, trusted-network-only, or unverified.
 - Runtime linkage version or commit reporting.
 - Absence of password login from the default starter.
+- `pnpm` frozen-lockfile install path.
+- CycloneDX SBOM generation and OSV-Scanner vulnerability scan path.
 
 ## 4. Security failure cases
 
@@ -55,6 +62,8 @@ The demo must show that:
 - Cross-tenant record access fails.
 - Missing policy bindings fail validation or deny access.
 - SQL injection-like inputs do not alter query structure.
+- Custom SQL outside the approved helper fails validation.
+- Destructive migration application fails without matching human approval.
 - Secrets do not appear in plans or logs.
 - Spoofed upstream identity headers fail outside the configured trusted boundary.
 - Unverified ingress fails upstream trusted identity checks.
@@ -65,6 +74,8 @@ A passing prototype must provide:
 
 - Demo commands.
 - Relevant source and generated/exported files.
+- Migration plan and checksum-bound approval example.
+- SBOM and vulnerability scan output.
 - Test output.
 - Example HTTP requests and responses.
 - Example audit records.
