@@ -9,11 +9,43 @@
 
 Daicho is an open-source framework specification for building AI-era business tools and operational CRUD applications with an AI-agent-friendly, command-capable developer experience, security-first architecture, secure-by-default behavior, user-facing web application or web API delivery, and low-operation deployment paths.
 
+## Why Daicho?
+
+AI can now generate application code astonishingly fast.
+
+But enterprise software is not hard because of buttons, forms, and tables.
+It is hard because real organizations need identity, permissions, auditability,
+security, deployment discipline, and operational trust.
+
+Most AI-built apps stop at “it works.”
+
+Enterprise customers start asking questions after that:
+
+- Where is SAML?
+- Where is SCIM?
+- Where are the audit logs?
+- Can permissions be more granular?
+- Who changed this record?
+- Can we disable users automatically?
+
+Daicho starts there.
+
+Daicho gives AI agents an enterprise-ready application foundation:
+SAML, SCIM, audit logs, secure defaults, fine-grained permissions, PostgreSQL,
+and declarative CRUD patterns.
+
+The goal is simple:
+
+> Vibe-code enterprise applications in a day — without skipping the boring parts enterprises actually require.
+
+The name “Daicho” comes from the Japanese word 台帳, meaning “ledger”:
+a registry, record book, or system of operational truth.
+
+## Status
+
 The project is intentionally starting with a specification before implementation so that architecture, security, secure defaults, and operability can be reviewed globally and collaboratively.
 
 Phase 0 is the specification and implementation-readiness phase. Its detailed scope, deliverables, review workflow, and Phase 1 entry criteria are documented in [`docs/phase-0-specification.md`](docs/phase-0-specification.md).
-
-The name “Daicho” comes from the Japanese word 台帳, meaning “ledger” — a system of record for business operations.
 
 ## Documentation
 
