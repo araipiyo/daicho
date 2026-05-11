@@ -13,6 +13,8 @@ The project is intentionally starting with a specification before implementation
 
 Phase 0 is the specification and implementation-readiness phase. Its detailed scope, deliverables, review workflow, and Phase 1 entry criteria are documented in [`docs/phase-0-specification.md`](docs/phase-0-specification.md).
 
+The name “Daicho” comes from the Japanese word 台帳, meaning “ledger” — a system of record for business operations.
+
 ## Documentation
 
 - [Framework specification](docs/specification.md)
