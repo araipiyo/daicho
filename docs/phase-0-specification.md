@@ -1,447 +1,160 @@
-# Daicho Phase 0 Specification Package
+# Daicho Phase 0 Specification
 
-Status: Draft 0.1  
-Phase: 0 - specification, validation, and implementation readiness  
-Audience: maintainers, contributors, security reviewers, implementation teams, and AI coding agents
+Status: Draft 0.2
+Phase: 0 - specification only
 
-## 1. Phase 0 purpose
+Phase 0 defines the smallest set of decisions needed before implementation starts. It is not an ISO-style specification. It should stay short, readable, and easy to audit.
 
-Phase 0 exists to make Daicho implementation-ready before production code is written. The goal is not to build the framework yet; it is to define the contracts, threat model, architecture, acceptance criteria, and review process with enough precision that Phase 1 can begin without guessing about security-critical behavior.
+## 1. Goal
 
-Phase 0 should produce a reviewed specification package that explains what Daicho is, what it is not, which defaults are mandatory, which decisions remain open, and how future code will prove compliance with those decisions.
+Daicho should help teams build AI-written operational applications that are safe enough to review and deploy.
 
-## 2. Phase 0 outcomes
+Phase 0 is complete when maintainers can answer these questions without guessing:
 
-Phase 0 is complete when the project has these reviewed artifacts:
+- What is the first usable Daicho project?
+- Which security rules are enforced by the framework itself?
+- What must humans review before deployment?
+- What is intentionally not included yet?
 
-1. **Product and scope specification**: the core problem, target users, non-goals, first prototype boundary, and adoption model.
-2. **Architecture specification**: CLI, schema compiler, generator, runtime, policy engine, PostgreSQL layer, audit layer, adapter boundaries, deployment templates, and testing surfaces.
-3. **Security specification**: secure-by-default rules, authentication posture, authorization model, tenant isolation model, SQL safety rules, secret handling, supply-chain expectations, and audit guarantees.
-4. **Threat model**: assets, actors, trust boundaries, misuse cases, prioritized threats, required mitigations, and validation methods.
-5. **Resource definition specification**: the first supported resource authoring format, required fields, static analysis requirements, validation behavior, generated artifacts, and compatibility rules.
-6. **CLI command specification**: command names, required inputs, outputs, dry-run behavior, plan format, exit-code expectations, and machine-readable output rules.
-7. **Prototype acceptance tests**: a testable checklist that Phase 1 code must satisfy before the prototype is considered complete.
-8. **Decision log**: resolved decisions, deferred decisions, decision owners, and criteria for revisiting decisions.
-9. **Contribution and review workflow**: how changes to specifications are proposed, reviewed, versioned, and translated into implementation tasks.
+## 2. First user experience
 
-## 3. In-scope work
+The first development workflow should be simple:
 
-Phase 0 includes specification and design work only. In-scope activities are:
+1. `git clone` a starter repository.
+2. Edit resource, policy, and deployment files in plain text.
+3. Run tests and validation from the command line.
+4. Deploy using reviewed templates.
 
-- Writing and revising Markdown specifications.
-- Defining CLI behavior, plan schemas, generated artifact expectations, and failure modes.
-- Defining security invariants and acceptance tests that future implementation must satisfy.
-- Creating example resource definitions and generated-output sketches when they clarify behavior.
-- Identifying mandatory dependencies, forbidden dependency categories, and review requirements.
-- Defining documentation structure and naming conventions.
-- Creating issue-ready implementation tasks for Phase 1.
+A project generator is not required for Phase 1. A generator may be added later only if it removes real maintenance work without hiding important security or deployment choices.
 
-## 4. Out-of-scope work
+## 3. Phase 1 product boundary
 
-Phase 0 must not drift into implementation. The following are out of scope unless explicitly reclassified by a maintainer decision:
+Phase 1 should build one narrow prototype:
 
-- Building the Daicho CLI.
-- Implementing the runtime server.
-- Generating real migrations or application source code.
-- Shipping authentication adapters.
-- Creating an administrative GUI or development GUI.
-- Selecting a long-term cloud hosting provider as a required control plane.
-- Adding a password-login starter template.
-- Publishing packages to npm.
+- TypeScript application code.
+- PostgreSQL as the transactional database.
+- One starter repository that can be cloned.
+- One tenant-scoped resource example.
+- CRUD HTTP API for that resource.
+- Upstream trusted identity mode for local and deployed use.
+- Deny-by-default authorization.
+- Tenant isolation checks.
+- Audit events for writes and denied access.
+- OpenAPI and JSON Schema export.
+- Docker Compose deployment template.
 
-Small illustrative snippets are allowed when they document intended behavior, but they must be labeled as examples and must not be treated as production code.
+Anything outside this list is optional unless a maintainer explicitly accepts it into Phase 1.
 
-## 5. Guiding principles for all Phase 0 documents
+## 4. Architecture decision
 
-Every Phase 0 document must follow these principles:
+Daicho should prefer a small enforced runtime library over large generated security-sensitive code.
 
-- **English-first**: all normative specification text must be written in English.
-- **Normative clarity**: use `must`, `must not`, `should`, `should not`, and `may` consistently.
-- **Security first**: security requirements must be expressed before convenience features.
-- **Reviewability**: requirements must be understandable in plain text and suitable for code review.
-- **Testability**: every mandatory behavior should have an associated validation method.
-- **AI-agent compatibility**: documents should be structured so AI coding agents can convert them into tasks, tests, and implementation plans.
-- **No hidden defaults**: any default that affects security, tenancy, identity, persistence, or deployment must be explicit.
+The application should link to Daicho framework packages that own these checks:
 
-## 6. Phase 0 artifact map
+- authentication context parsing;
+- tenant context validation;
+- authorization dispatch;
+- safe database access helpers;
+- audit event writing;
+- request and response validation hooks;
+- startup configuration validation.
 
-The Phase 0 specification package should use this documentation structure:
+AI agents may write application code, resources, policies, tests, and adapters, but they must not be trusted to remember security rules. Security-critical behavior should fail closed inside the Daicho library when required context, policy, tenant scope, or audit configuration is missing.
 
-| Artifact | Proposed path | Purpose | Required before Phase 1 |
-| --- | --- | --- | --- |
-| Main framework specification | `docs/specification.md` | Project-wide requirements and resolved baseline decisions | Yes |
-| Phase 0 specification package | `docs/phase-0-specification.md` | Phase 0 scope, deliverables, process, and readiness checklist | Yes |
-| Architecture specification | `docs/architecture.md` | Component contracts, data flow, extension points, and generated artifact boundaries | Yes |
-| Security specification | `docs/security.md` | Secure defaults, identity, authorization, tenancy, SQL safety, audit, secrets, and supply-chain rules | Yes |
-| Threat model | `docs/threat-model.md` | Assets, trust boundaries, threats, mitigations, and validation strategy | Yes |
-| Resource model specification | `docs/resource-model.md` | Resource authoring format, field model, tenancy declarations, policies, and generated artifacts | Yes |
-| CLI specification | `docs/cli.md` | Commands, inputs, outputs, plans, errors, and exit codes | Yes |
-| Prototype acceptance plan | `docs/prototype-acceptance.md` | Phase 1 acceptance tests and demo scenario | Yes |
-| Decision log | `docs/decisions.md` | Resolved and deferred decisions with rationale | Yes |
+Generated or template code may exist, but it should stay thin and reviewable. It should call the framework library instead of duplicating security logic.
 
-This repository may introduce these files incrementally. Until all files exist, this Phase 0 document acts as the coordination document and readiness checklist.
+## 5. CLI decision
 
-## 7. Product specification requirements
+Phase 1 needs command-line checks more than a full generator.
 
-The product specification must define:
+Required commands:
 
-- Target users: developers, platform teams, security reviewers, AI coding agents, and operators building operational business systems.
-- Primary use cases: internal operational APIs, CRUD workflows, approval systems, data stewardship tools, tenant-aware back-office services, and AI-agent-operated workflows.
-- Non-goals: low-code visual builders, GUI-first administration, password-login starter kits, proprietary hosted control planes, and opaque plugin behavior.
-- Adoption model: teams can use Daicho for one service or workflow without migrating their full platform.
-- First prototype boundary: one tenant-scoped resource, local PostgreSQL, local HTTP API, deny-by-default policy, audit events, structured logs, and Docker Compose deployment.
+- `daicho check`: validate resources, policies, tenancy declarations, configuration, and dependency risk.
+- `daicho test`: run the project test suite and Daicho security checks.
+- `daicho export`: write OpenAPI and JSON Schema artifacts.
+- `daicho deploy prepare`: prepare deployment files, plans, and human-readable instructions without applying infrastructure.
+- `daicho doctor`: report local environment and configuration problems.
 
-The product specification must also distinguish between:
+Not required for Phase 1:
 
-- **Core framework behavior**, which must be implemented by Daicho.
-- **Generated application behavior**, which Daicho produces in user projects.
-- **Optional adapters**, which may be added without changing secure defaults.
-- **External infrastructure**, such as upstream identity proxies and managed PostgreSQL providers.
+- `daicho init`;
+- general project scaffolding;
+- full application code generation;
+- automatic cloud deployment.
 
-## 8. Architecture specification requirements
+Commands that can affect deployment or data must have dry-run or plan output. Plans must not contain secrets.
 
-The architecture specification must define at least these components and contracts.
+## 6. Deployment decision
 
-### 8.1 CLI
+Deployment is likely to be performed by a human, so Phase 1 should provide templates and checks rather than hidden automation.
 
-The CLI is the only required developer interface. It must be scriptable, deterministic, and usable by humans and AI agents.
+The first deployment support should include:
 
-The architecture specification must describe how the CLI:
+- Docker Compose for local and simple server deployment;
+- documented environment variables;
+- health and readiness endpoints;
+- migration instructions;
+- reverse-proxy or upstream identity assumptions;
+- a deployment checklist for humans;
+- `daicho deploy prepare` output showing what will be used.
 
-- Reads project configuration.
-- Validates resource definitions.
-- Produces plans before mutations.
-- Generates source code and SQL files.
-- Runs local checks.
-- Exports OpenAPI and JSON Schema.
-- Creates deployment templates.
-- Reports machine-readable errors.
+Daicho must not require a proprietary hosted control plane.
 
-### 8.2 Schema compiler
+## 7. Security decisions
 
-The schema compiler converts resource definitions into an internal representation. It must:
+Security must be enforced, not merely suggested.
 
-- Reject nondeterministic definitions.
-- Preserve stable names for generated artifacts.
-- Track source locations for diagnostics.
-- Normalize field definitions, relationships, policy bindings, tenant settings, audit settings, and API exposure.
-- Emit an intermediate representation that can be inspected in tests.
+Phase 1 must enforce these rules in framework code or tests:
 
-### 8.3 Code generator
+- Requests without a valid principal are rejected.
+- Tenant-scoped resources require an explicit tenant context.
+- Cross-tenant reads and writes fail.
+- Missing authorization policy means deny.
+- Database access for resources goes through Daicho-approved helpers.
+- Raw SQL escape hatches are disabled by default.
+- Writes produce audit events.
+- Secrets are never printed in plans or logs.
+- Password login is not included in the starter.
 
-The generator must produce reviewable code. It must not hide security-critical behavior behind opaque runtime magic.
+If a rule cannot be enforced in runtime code, Phase 0 must name the test, lint rule, or review gate that enforces it.
 
-Generated code must show:
+## 8. Required Phase 0 documents
 
-- Tenant constraints.
-- Policy checks.
-- Validation calls.
-- Transaction boundaries.
-- Audit event writes.
-- Safe SQL construction.
+Keep the document set small. Before Phase 1 starts, these files should exist and agree with each other:
 
-### 8.4 Runtime
+- `docs/specification.md`: product scope and non-goals.
+- `docs/architecture.md`: runtime-library architecture and boundaries.
+- `docs/security.md`: enforced security invariants.
+- `docs/threat-model.md`: realistic threats and mitigations.
+- `docs/resource-model.md`: resource shape and tenancy model.
+- `docs/cli.md`: required commands and output behavior.
+- `docs/prototype-acceptance.md`: end-to-end acceptance checklist.
+- `docs/decisions.md`: accepted and deferred decisions.
 
-The runtime must be minimal and explicit. The architecture specification must define request flow from HTTP ingress to validation, identity extraction, tenant context resolution, authorization, database access, audit logging, and response serialization.
+Each document should be short. Details belong only where they change implementation, review, or security decisions.
 
-### 8.5 PostgreSQL layer
+## 9. Acceptance checklist
 
-The PostgreSQL layer must be defined as a security boundary. It must prevent raw string interpolation for untrusted values and must enforce tenant-aware query construction for tenant-scoped resources.
+Phase 0 can close when maintainers have accepted:
 
-### 8.6 Adapter boundary
+- [ ] the clone-first starter workflow;
+- [ ] no Phase 1 project generator;
+- [ ] the required Phase 1 CLI commands;
+- [ ] the runtime-library enforcement model;
+- [ ] tenant isolation invariants;
+- [ ] authorization deny-by-default behavior;
+- [ ] audit requirements;
+- [ ] raw SQL restrictions;
+- [ ] deployment templates and human checklist;
+- [ ] the single end-to-end prototype scenario.
 
-Adapters must be optional and explicit. The architecture specification must define how identity providers, object storage, queues, email providers, and deployment targets integrate without becoming mandatory hidden infrastructure.
+## 10. Deferred questions
 
-## 9. Security specification requirements
+These questions may be deferred if they do not block the prototype:
 
-The security specification must be written before security-sensitive code is implemented. It must include the following mandatory rules.
-
-### 9.1 Secure defaults
-
-Default generated projects must:
-
-- Disable password login.
-- Require an explicit identity mode.
-- Deny all resource operations unless policies allow them.
-- Require tenancy declarations for every resource.
-- Use safe SQL construction.
-- Avoid default public administrative screens.
-- Avoid logging secrets, tokens, session values, or full request bodies by default.
-- Include local security checks in generated project scripts.
-
-### 9.2 Authentication
-
-The first identity mode should be upstream trusted identity / no-login mode. It may trust identity headers only when the deployment explicitly configures a trusted boundary. The specification must document how spoofed headers are prevented and how local development simulates identity safely.
-
-OIDC, SAML, passkeys, service credentials, and password authentication must be treated as separate explicit adapters. Password authentication must remain opt-in if it is ever implemented.
-
-### 9.3 Authorization
-
-Authorization must be deny-by-default. Policies must be evaluated before data access unless the operation requires an existing record; in that case, the existing-record read must itself be tenant constrained and minimal.
-
-The policy specification must define:
-
-- Principal shape.
-- Tenant context shape.
-- Resource and operation names.
-- Existing and proposed record values.
-- Request metadata available to policies.
-- Deterministic test harness behavior.
-- Audit output for allow and deny decisions.
-
-### 9.4 Tenancy
-
-Tenant isolation must be enforced by construction. The specification must define behavior for `global`, `tenant_scoped`, `tenant_partitioned`, and `system` resources.
-
-For `tenant_scoped` resources, generated queries must include tenant constraints in every read, update, delete, relationship traversal, and uniqueness check where applicable.
-
-### 9.5 SQL safety
-
-The SQL safety specification must define:
-
-- Parameter binding requirements.
-- Identifier escaping rules.
-- Forbidden raw SQL APIs in generated code.
-- Review requirements for custom SQL escape hatches.
-- Query-builder invariants.
-- Tests for injection attempts and missing tenant constraints.
-
-### 9.6 Audit and logs
-
-Audit events must be append-only from the generated application perspective. The specification must define required fields, redaction rules, correlation IDs, retention assumptions, and failure behavior when audit persistence fails.
-
-### 9.7 Supply chain
-
-The supply-chain section must define dependency selection rules, lockfile requirements, vulnerability scanning expectations, SBOM path, release signing path, template integrity checks, and minimum CI checks.
-
-## 10. Threat model requirements
-
-The threat model must cover at least:
-
-- Assets: tenant data, credentials, audit records, generated source, migration files, deployment manifests, and policy definitions.
-- Actors: legitimate users, tenant administrators, operators, external attackers, malicious dependencies, compromised AI agents, and misconfigured identity providers.
-- Trust boundaries: browser/client, upstream identity proxy, generated application, PostgreSQL, deployment platform, CI/CD, package registry, and optional adapters.
-- Threats: cross-tenant access, SQL injection, authorization bypass, template tampering, dependency compromise, secret leakage, audit tampering, unsafe migrations, and AI-agent mistakes.
-- Mitigations: design constraints, generated tests, static checks, runtime guards, review steps, and deployment guidance.
-- Residual risks: explicit risks accepted for the first prototype and reasons they are acceptable.
-
-Threats should be prioritized by likelihood and impact. Each high-priority threat must map to one or more required controls and one or more validation methods.
-
-## 11. Resource model specification requirements
-
-The resource model specification must define the first supported authoring format and the internal representation that generators consume.
-
-At minimum, a resource must define:
-
-- Stable name.
-- Tenancy mode.
-- Field list.
-- Primary key.
-- Tenant key when tenant-scoped.
-- Validation constraints.
-- Indexes.
-- Relationships.
-- API exposure.
-- Policy bindings.
-- Audit behavior.
-
-The specification must define how resources are versioned, how renames are represented, how migrations are generated, and which changes require manual review.
-
-### 11.1 Example resource sketch
-
-The final resource specification should include an example similar to this non-normative sketch:
-
-```ts
-export const customer = resource({
-  name: "customer",
-  tenancy: "tenant_scoped",
-  table: "customers",
-  fields: {
-    id: uuid().primaryKey(),
-    tenantId: uuid().tenantKey(),
-    name: text().min(1).max(200).required(),
-    status: enumText(["active", "archived"]).default("active"),
-    createdAt: timestamp().generated(),
-    updatedAt: timestamp().generated(),
-  },
-  api: {
-    operations: ["create", "read", "list", "update", "delete"],
-  },
-  policies: {
-    create: "customer.create",
-    read: "customer.read",
-    list: "customer.list",
-    update: "customer.update",
-    delete: "customer.delete",
-  },
-  audit: {
-    events: ["create", "update", "delete", "policy_denied"],
-  },
-});
-```
-
-This sketch is illustrative only. Phase 0 must decide the actual syntax before Phase 1 implementation begins.
-
-## 12. CLI specification requirements
-
-The CLI specification must define command behavior in enough detail to support test-first implementation.
-
-Required command groups:
-
-- `daicho init`: create a project from a template.
-- `daicho validate`: validate configuration, resources, policies, and deployment manifests.
-- `daicho plan`: emit a machine-readable plan for generation, migration, or deployment actions.
-- `daicho generate`: generate source, schemas, OpenAPI, and SQL artifacts.
-- `daicho migrate`: create and apply PostgreSQL migrations.
-- `daicho policy test`: run policy tests without a browser or GUI.
-- `daicho test`: run generated project checks.
-- `daicho deploy prepare`: create deployment bundles or templates without applying infrastructure.
-- `daicho doctor`: inspect environment prerequisites and configuration risks.
-
-For each command, the specification must define:
-
-- Required and optional flags.
-- Input files read.
-- Output files written.
-- Whether the command mutates state.
-- Dry-run behavior.
-- Plan output schema.
-- JSON output mode.
-- Exit codes.
-- Error categories.
-- Logging and redaction behavior.
-
-## 13. Plan format requirements
-
-Commands that propose changes must emit plans before applying changes. The plan format must be stable enough for review tools and AI agents.
-
-A plan must include:
-
-- Plan schema version.
-- Daicho version.
-- Project root.
-- Command and arguments.
-- Timestamp.
-- Inputs and content hashes.
-- Proposed file changes.
-- Proposed database changes.
-- Proposed deployment changes.
-- Security-sensitive changes.
-- Warnings.
-- Required approvals, if any.
-
-Plans must not include secrets. Any redacted value must be marked as redacted rather than omitted when its presence affects review.
-
-## 14. Prototype acceptance plan requirements
-
-The Phase 1 prototype acceptance plan must define a single end-to-end scenario:
-
-1. Initialize a new project.
-2. Define one tenant-scoped resource.
-3. Validate the resource.
-4. Generate migration SQL and TypeScript runtime code.
-5. Start local PostgreSQL and the generated application.
-6. Make create, read, list, update, and delete requests with a simulated upstream identity.
-7. Prove that cross-tenant reads and writes fail.
-8. Prove that missing policies deny access.
-9. Prove that audit events are written.
-10. Export OpenAPI and JSON Schema.
-11. Run all checks from the command line.
-12. Produce a Docker Compose deployment.
-
-The plan must identify exact commands, expected files, expected HTTP responses, expected audit records, and expected failure cases.
-
-## 15. Decision log requirements
-
-The decision log must record:
-
-- Decision identifier.
-- Title.
-- Status: proposed, accepted, superseded, or rejected.
-- Context.
-- Decision.
-- Consequences.
-- Alternatives considered.
-- Date accepted.
-- Reviewers or owners.
-
-At minimum, Phase 0 must record decisions for:
-
-- First resource definition format.
-- First identity mode.
-- SQL generation strategy.
-- PostgreSQL row-level security posture.
-- Minimum deployment target.
-- Policy authoring model.
-- Generated code ownership model.
-- Dependency policy.
-
-## 16. Documentation quality bar
-
-Before Phase 0 is accepted, documents must satisfy this quality bar:
-
-- Requirements are written in English.
-- Normative statements are unambiguous.
-- Security-sensitive defaults are explicit.
-- Each major requirement has a validation method.
-- Open questions are listed separately from resolved decisions.
-- Examples are labeled as non-normative when they are not binding.
-- File names and command names are stable enough for Phase 1 planning.
-- The first prototype can be implemented from the documents without relying on private context.
-
-## 17. Phase 0 review workflow
-
-Phase 0 changes should follow this workflow:
-
-1. Open a documentation change with a clear summary and affected areas.
-2. Identify whether the change modifies security, tenancy, identity, persistence, deployment, or generated-code behavior.
-3. Add or update validation criteria for any new mandatory behavior.
-4. Update the decision log when a design decision changes.
-5. Request review from at least one maintainer and one security-minded reviewer for security-sensitive changes.
-6. Merge only after open questions are either resolved or explicitly deferred.
-
-## 18. Phase 0 readiness checklist
-
-Phase 0 is ready to close when all checklist items are complete:
-
-- [ ] Main framework specification reviewed.
-- [ ] Architecture specification created and reviewed.
-- [ ] Security specification created and reviewed.
-- [ ] Threat model created and reviewed.
-- [ ] Resource model specification created and reviewed.
-- [ ] CLI specification created and reviewed.
-- [ ] Prototype acceptance plan created and reviewed.
-- [ ] Decision log created and reviewed.
-- [ ] Open questions assigned owners or deferred with rationale.
-- [ ] Phase 1 implementation tasks created from accepted specifications.
-- [ ] Security-critical acceptance tests identified before implementation begins.
-
-## 19. Phase 1 entry criteria
-
-Phase 1 may begin only after Phase 0 provides enough detail to implement and test the first prototype. Required entry criteria are:
-
-- The first resource authoring format is accepted.
-- The first identity mode is accepted.
-- CLI command names and output expectations are accepted.
-- Tenant isolation invariants are accepted.
-- SQL safety invariants are accepted.
-- Prototype acceptance scenario is accepted.
-- Required generated artifacts are listed.
-- Deferred decisions are not blockers for the first prototype.
-
-If any entry criterion is unresolved, Phase 1 work may still explore prototypes, but those prototypes must be treated as disposable spikes rather than framework implementation.
-
-## 20. Open questions for Phase 0
-
-Phase 0 must resolve or explicitly defer these questions:
-
-1. Should the first resource format be TypeScript-only, YAML/JSON-only, or dual-format?
-2. Should generated code be fully checked into user repositories, partially generated, or produced on demand?
-3. What is the minimum safe custom SQL escape hatch?
-4. What policy language should be used first: TypeScript functions, declarative expressions, or both?
-5. What is the exact local development identity simulation model?
-6. Which Node.js LTS and PostgreSQL version ranges should the first prototype target?
-7. Which package manager should generated projects use by default?
-8. Which SBOM tool and vulnerability scanner should be recommended first?
-9. How should migration rename detection and destructive-change approval work?
-10. What level of row-level security support belongs in Phase 1 versus later phases?
+- Should a generator be added after Phase 1?
+- Which cloud-specific deployment templates should come first?
+- How much PostgreSQL row-level security should Daicho manage directly?
+- What is the safest limited raw SQL extension model?
+- Which authentication adapters should follow upstream trusted identity mode?
+- Which package manager, SBOM tool, and vulnerability scanner should be recommended by default?
