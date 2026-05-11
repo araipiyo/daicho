@@ -20,6 +20,7 @@ Daicho must be:
 - Portable across local containers, managed PostgreSQL, Kubernetes, and cloud container platforms.
 - Clear that the Daicho CLI is for developers, AI agents, CI, and limited operator tasks, not product users.
 - Designed to run behind protected ingress rather than exposing an origin server directly.
+- Built on a maintained external HTTP router instead of an in-house web framework.
 
 ## 3. Components
 
@@ -79,7 +80,15 @@ The intermediate representation must include:
 
 It must be serializable and secret-free.
 
-## 8. Runtime request flow
+## 8. HTTP framework boundary
+
+Phase 1 uses Hono as the first HTTP routing and middleware layer for web applications and web APIs. The Daicho runtime owns a thin adapter around Hono, not a general-purpose in-house framework. That adapter is responsible for registering generated resource routes, wrapping handlers in identity and ingress verification, resolving tenants, enforcing policy, invoking approved database helpers, writing audit records, applying response shaping, and exposing health and readiness endpoints.
+
+The runtime should expose a standard `fetch`-style handler where possible so tests, containers, serverless adapters, and protected-ingress integrations can exercise the same request pipeline. Daicho must not depend on a UI-first full-stack framework for core API enforcement. Optional human-facing UI packages may call Daicho APIs but should remain separate from the core runtime unless a later decision explicitly changes that boundary.
+
+Fastify is the fallback HTTP framework if prototype testing shows Hono cannot meet Node.js production, streaming, plugin, or schema-integration requirements without excessive custom code. A custom Daicho router may include only trivial glue; maintaining complex routing, middleware, request parsing, or framework adapter behavior in-house is out of scope.
+
+## 9. Runtime request flow
 
 A request must flow in this order:
 
@@ -95,7 +104,7 @@ A request must flow in this order:
 10. Emit structured logs.
 11. Return a structured response or error.
 
-## 9. PostgreSQL boundary
+## 10. PostgreSQL boundary
 
 PostgreSQL is the system of record. The database layer must provide:
 
@@ -110,7 +119,7 @@ PostgreSQL is the system of record. The database layer must provide:
 
 Generated or starter code must not concatenate untrusted values into SQL.
 
-## 10. Policy boundary
+## 11. Policy boundary
 
 Policies must be called through a stable interface with:
 
@@ -124,25 +133,25 @@ Policies must be called through a stable interface with:
 
 Policies return allow or deny with safe reason codes for audit.
 
-## 11. Adapter boundary
+## 12. Adapter boundary
 
 Adapters are optional modules. The core runtime must not require a hosted Daicho service.
 
 Adapter categories include identity providers such as OIDC, SAML, passkey, and service-token adapters; SCIM-compatible provisioning providers; protected ingress providers; object storage; queues; email; deployment targets; and observability exporters. Each adapter must declare configuration, secrets, capabilities, trust assumptions, and failure behavior.
 
-## 12. Protected ingress boundary
+## 13. Protected ingress boundary
 
 Production deployments should place Daicho applications behind an explicit access layer such as Cloudflare Access, Tailscale, an identity-aware proxy, API gateway, private service mesh, or equivalent zero-trust product. Direct public exposure of the origin server is discouraged even for public applications; public traffic should normally terminate at an edge, gateway, or proxy that enforces rate limits, TLS, identity, bot controls, WAF policy, or equivalent controls before forwarding to the origin.
 
 The runtime can only confirm an access path when the access layer exposes verifiable evidence. Supported patterns should include signed access-layer JWTs, mTLS client certificates, signed service tokens, or provider-specific proofs validated against a configured issuer. Network-only trust may be accepted only when deployment configuration restricts source networks or proxy identities and Daicho checks can validate the declared assumptions. Unsigned identity headers from arbitrary clients must never be trusted.
 
-## 13. Runtime linkage boundary
+## 14. Runtime linkage boundary
 
 Phase 1 may keep the Daicho runtime in the clone-first starter repository, but application code must import it through stable runtime APIs and must not duplicate security-critical internals. The repository layout must make framework-owned runtime files distinguishable from application-owned files.
 
 The preferred future boundary is a separately versioned runtime dependency with immutable version pins, provenance, integrity verification, and a documented security update workflow. Candidate linkage mechanisms include a package registry artifact, signed release archive, Git submodule, or another auditable mechanism. The architecture must preserve the ability to patch the runtime across applications without relying on unreviewed local forks.
 
-## 14. Observability
+## 15. Observability
 
 Generated applications must provide:
 
@@ -153,6 +162,6 @@ Generated applications must provide:
 - Audit records for security-relevant events, including identity lifecycle and authorization decisions.
 - Ingress trust diagnostics that report whether runtime identity is verified, trusted-network-only, or unverified.
 
-## 15. Acceptance
+## 16. Acceptance
 
 The architecture is acceptable when it explains one tenant-scoped CRUD request from HTTP ingress through identity, account lifecycle enforcement, tenant resolution, policy, SQL, audit, logs, and response serialization without a GUI, hidden service, product-user CLI step, or directly exposed origin dependency.
