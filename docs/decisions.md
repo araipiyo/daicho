@@ -1,6 +1,6 @@
 # Daicho Decision Log
 
-Status: Draft 0.2
+Status: Draft 0.3
 Phase: 0
 
 ## 1. Purpose
@@ -23,17 +23,17 @@ Each full decision record should include:
 
 ## 3. Accepted decisions
 
-### D0001: Command-first development
+### D0001: AI-agent-first, command-capable development
 
 Status: Accepted
-Decision: Daicho must be usable through source files, CLI commands, tests, and CI/CD without a development GUI.
-Consequence: CLI behavior and generated artifacts are core product surfaces.
+Decision: Daicho must be usable through source files, AI coding agents such as Codex or Claude Code, CLI commands, tests, and CI/CD without a development GUI.
+Consequence: CLI behavior, generated artifacts, deterministic plans, and human-reviewable diffs are core developer surfaces.
 
-### D0002: No default administrative GUI
+### D0002: No default administrative GUI or product-user CLI
 
 Status: Accepted
-Decision: Daicho must not generate or require an administrative GUI by default.
-Consequence: Operators use APIs, CLIs, auditable workflows, and optional separately maintained UIs.
+Decision: Daicho must not generate or require an administrative GUI by default, and product users must not be required to run the Daicho CLI.
+Consequence: Product users consume web applications, web APIs, service integrations, or background workflows; operators and developers use APIs, CLIs, auditable workflows, and optional separately maintained UIs.
 
 ### D0003: PostgreSQL as system of record
 
@@ -65,6 +65,18 @@ Status: Accepted
 Decision: Phase 1 starts from a maintained starter repo, not a project generator.
 Consequence: `daicho init` and broad scaffolding are deferred.
 
+### D0008: Protected ingress by default
+
+Status: Accepted
+Decision: Daicho deliverables should run behind a protected access layer such as Cloudflare Access, Tailscale, identity-aware proxies, API gateways, private service meshes, or equivalent zero-trust products. Direct public origin exposure is discouraged even for public applications unless explicitly documented with compensating controls.
+Consequence: Deployment templates, checks, and runtime adapters must model ingress trust, reject spoofable identity headers, and distinguish verified ingress from trusted-network-only and unverified ingress.
+
+### D0009: Runtime linkage must be explicit
+
+Status: Accepted
+Decision: Phase 1 may keep the Daicho runtime in the clone-first starter repository, but runtime imports, ownership boundaries, version identity, and update paths must be explicit. The preferred future model is a separately versioned, immutable, provenance-checked runtime dependency.
+Consequence: Starter layout and checks must prevent copied security-critical internals from becoming invisible forks, and future distribution work must support security patches across applications.
+
 ## 4. Pending Phase 0 decisions
 
 - D0101: First resource authoring format.
@@ -76,3 +88,5 @@ Consequence: `daicho init` and broad scaffolding are deferred.
 - D0107: SBOM and vulnerability scanning tools.
 - D0108: Destructive migration approval workflow.
 - D0109: Row-level security roadmap.
+- D0110: Provider-specific protected-ingress adapters and proof formats.
+- D0111: Post-Phase 1 runtime distribution mechanism.
