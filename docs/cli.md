@@ -37,7 +37,7 @@ Reserved exit codes:
 
 ### `daicho check`
 
-Validates configuration, strict resource JSON, strict policy JSON, tenancy declarations, generated artifact freshness, migration plans, deployment files, runtime linkage, protected-ingress assumptions, and dependency risk. It must fail on missing tenancy, missing policy bindings, unsafe identity configuration, unverified upstream trusted identity, direct-origin exposure without an accepted exception, and unsafe default security settings.
+Validates configuration, identity and provisioning declarations, strict resource JSON, strict policy JSON, tenancy declarations, generated artifact freshness, migration plans, deployment files, runtime linkage, protected-ingress assumptions, and dependency risk. It must fail on missing tenancy, missing policy bindings, unsafe identity or provisioning configuration, unverified upstream trusted identity, direct-origin exposure without an accepted exception, and unsafe default security settings.
 
 ### `daicho test`
 
@@ -70,7 +70,7 @@ A plan must include:
 - Proposed database changes with safe/destructive/manual classification and migration checksums.
 - Proposed deployment changes.
 - Protected-ingress mode and origin-exposure warnings.
-- Security warnings.
+- Security warnings, including identity lifecycle or provisioning gaps.
 - Required approvals, including checksum-bound approval for destructive migrations.
 
 A plan must not include secrets. If a destructive database change is present and no matching human approval exists, the command must exit with code `4`.
