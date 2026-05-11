@@ -6,6 +6,20 @@ Daicho is an open-source framework specification for building AI-era business to
 
 The project is intentionally starting with a specification before implementation so that architecture, security, secure defaults, and operability can be reviewed globally and collaboratively.
 
+Phase 0 is the specification and implementation-readiness phase. Its detailed scope, deliverables, review workflow, and Phase 1 entry criteria are documented in [`docs/phase-0-specification.md`](docs/phase-0-specification.md).
+
+## Documentation
+
+- [Framework specification](docs/specification.md)
+- [Phase 0 specification package](docs/phase-0-specification.md)
+- [Architecture specification](docs/architecture.md)
+- [Security specification](docs/security.md)
+- [Threat model](docs/threat-model.md)
+- [Resource model specification](docs/resource-model.md)
+- [CLI specification](docs/cli.md)
+- [Prototype acceptance plan](docs/prototype-acceptance.md)
+- [Decision log](docs/decisions.md)
+
 ## Vision
 
 Build a TypeScript-centered framework that lets teams create internal business systems, back-office workflows, data stewardship tools, and operational APIs without relying on development GUIs or mandatory administrative GUIs.

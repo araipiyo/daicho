@@ -4,6 +4,8 @@ Status: Draft 0.1
 
 > AI makes code cheap. Daicho makes operational code trustworthy.
 
+This document is the top-level framework specification. Phase 0 implementation-readiness work is tracked in [`docs/phase-0-specification.md`](phase-0-specification.md), which defines the detailed specification package, review workflow, and Phase 1 entry criteria.
+
 ## 1. Purpose
 
 Daicho is an open-source framework for AI-era business tools and CRUD-oriented operational systems. Its purpose is to provide a security-first, text-first, TypeScript-centered foundation for building APIs and workflows that are usually served by internal admin panels, while avoiding GUI-first development and avoiding default administrative GUIs. Daicho treats operational code as production-critical infrastructure: generated code must be reviewable, policy-aware, tenant-safe, and secure by default.
