@@ -1,6 +1,6 @@
 # Daicho CLI Specification
 
-Status: Draft 0.3
+Status: Draft 0.4
 Phase: 0
 
 ## 1. Purpose
@@ -37,7 +37,7 @@ Reserved exit codes:
 
 ### `daicho check`
 
-Validates configuration, resources, policies, tenancy declarations, deployment files, runtime linkage, protected-ingress assumptions, and dependency risk. It must fail on missing tenancy, missing policy bindings, unsafe identity configuration, unverified upstream trusted identity, direct-origin exposure without an accepted exception, and unsafe default security settings.
+Validates configuration, strict resource JSON, strict policy JSON, tenancy declarations, generated artifact freshness, migration plans, deployment files, runtime linkage, protected-ingress assumptions, and dependency risk. It must fail on missing tenancy, missing policy bindings, unsafe identity configuration, unverified upstream trusted identity, direct-origin exposure without an accepted exception, and unsafe default security settings.
 
 ### `daicho test`
 
@@ -45,7 +45,7 @@ Runs the project test suite and Daicho security checks. It must support command-
 
 ### `daicho export`
 
-Writes OpenAPI and JSON Schema artifacts. Exports must be deterministic, reviewable, and free of secrets.
+Writes OpenAPI, JSON Schema, TypeScript model types, and generated SQL migration artifacts where applicable. Exports must be deterministic, reviewable, and free of secrets.
 
 ### `daicho deploy prepare`
 
@@ -67,13 +67,13 @@ A plan must include:
 - Timestamp.
 - Input file hashes.
 - Proposed file changes.
-- Proposed database changes.
+- Proposed database changes with safe/destructive/manual classification and migration checksums.
 - Proposed deployment changes.
 - Protected-ingress mode and origin-exposure warnings.
 - Security warnings.
-- Required approvals.
+- Required approvals, including checksum-bound approval for destructive migrations.
 
-A plan must not include secrets.
+A plan must not include secrets. If a destructive database change is present and no matching human approval exists, the command must exit with code `4`.
 
 ## 6. Diagnostic requirements
 

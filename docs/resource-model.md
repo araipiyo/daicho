@@ -1,6 +1,6 @@
 # Daicho Resource Model Specification
 
-Status: Draft 0.2
+Status: Draft 0.3
 Phase: 0
 
 ## 1. Purpose
@@ -78,7 +78,58 @@ Resource changes must be classified as:
 
 Destructive changes require plan warnings and explicit approval before application.
 
-## 9. Non-normative example
+
+## 9. First authoring format
+
+The first canonical resource authoring format is strict JSON validated by JSON Schema. Resource files live under `resources/*.resource.json` and are the source of truth for validation, database mapping, API generation, policy binding, audit settings, and migration planning.
+
+A resource JSON document must be complete and unambiguous:
+
+- No implicit tenancy, table, primary key, API operation, policy binding, audit event, or destructive-change behavior.
+- Only schema-defined keys are allowed. Unknown keys fail validation.
+- Enums use explicit string values.
+- Defaults must be declared in the resource document and must identify whether they are application defaults, database defaults, or generated values.
+- Database identifiers must be explicit and checked against Daicho identifier rules.
+- JSON fields require explicit validation schemas and redaction settings.
+
+The CLI may generate SQL DDL migrations, TypeScript model types, OpenAPI, JSON Schema, and policy test scaffolds from the resource JSON. Generated artifacts are reviewable outputs, not the canonical source. A future TypeScript DSL is allowed only if it emits the same canonical JSON without executing arbitrary application code during validation. YAML is not used as the first format because duplicate keys, anchors, and implicit typing introduce avoidable ambiguity.
+
+## 10. Non-normative JSON example
+
+```json
+{
+  "name": "customer",
+  "tenancy": {
+    "mode": "tenant_scoped",
+    "tenantKey": "tenantId"
+  },
+  "table": "customers",
+  "primaryKey": ["id"],
+  "fields": {
+    "id": { "type": "uuid", "primaryKey": true, "generated": "uuid" },
+    "tenantId": { "type": "uuid", "tenantKey": true, "required": true },
+    "name": { "type": "text", "required": true, "minLength": 1, "maxLength": 200 },
+    "status": { "type": "text", "enum": ["active", "archived"], "default": { "application": "active" } },
+    "createdAt": { "type": "timestamp", "generated": "now" },
+    "updatedAt": { "type": "timestamp", "generated": "now" }
+  },
+  "indexes": [
+    { "name": "customers_tenant_status_idx", "columns": ["tenantId", "status"] }
+  ],
+  "api": { "operations": ["create", "read", "list", "update", "delete"] },
+  "policies": {
+    "create": "customer.create",
+    "read": "customer.read",
+    "list": "customer.list",
+    "update": "customer.update",
+    "delete": "customer.delete"
+  },
+  "audit": { "events": ["create", "update", "delete", "policy_denied"] },
+  "migrations": { "destructiveChanges": "explicit_approval" }
+}
+```
+
+## 11. Non-normative TypeScript-style example
 
 ```ts
 export const customer = resource({
@@ -105,4 +156,4 @@ export const customer = resource({
 });
 ```
 
-The exact authoring format remains a Phase 0 decision.
+This TypeScript-style example is illustrative only. The canonical Phase 1 source is the strict JSON format above.

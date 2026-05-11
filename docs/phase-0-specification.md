@@ -1,6 +1,6 @@
 # Daicho Phase 0 Specification
 
-Status: Draft 0.3
+Status: Draft 0.4
 Phase: 0
 
 ## 1. Purpose
@@ -23,6 +23,11 @@ Phase 0 is complete when maintainers have accepted:
 - SQL restrictions.
 - Deployment preparation and protected-ingress model.
 - Runtime linkage and update model.
+- Resource authoring format.
+- Policy authoring model.
+- Custom SQL escape hatch.
+- Package manager, runtime/database version ranges, SBOM, and vulnerability scanning tools.
+- Destructive migration approval workflow.
 - Prototype acceptance scenario.
 
 ## 3. Required documents
@@ -89,6 +94,10 @@ Phase 1 must enforce or test:
 - Upstream trusted identity rejects unverified ingress and spoofable headers.
 - Deployment guidance discourages direct public origin exposure.
 - Runtime linkage reports an exact version or commit.
+- Resource files validate against strict JSON Schema before generated artifacts are used.
+- Policy files validate against the Phase 1 JSON policy schema and deny unsupported expressions.
+- Destructive migration plans require explicit human approval tied to migration checksums.
+- SBOM and vulnerability scans run in CI with documented exception handling.
 - Product users can access the delivered web app or API without the Daicho CLI.
 
 If a rule is not enforced at runtime, Phase 0 must name the test, lint rule, or review gate that enforces it.
@@ -107,12 +116,6 @@ Before Phase 1 starts:
 
 Phase 0 may defer:
 
-- Resource authoring syntax.
-- Policy authoring syntax.
-- Safe raw SQL extension model.
-- Package manager choice.
-- Node.js and PostgreSQL version ranges.
-- SBOM and vulnerability scanner choices.
 - Row-level security roadmap.
-- Provider-specific protected-ingress adapters.
+- Provider-specific protected-ingress adapters and proof formats.
 - Post-Phase 1 runtime distribution mechanism.
