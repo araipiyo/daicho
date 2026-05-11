@@ -2,7 +2,7 @@
 
 > AI makes code cheap. Daicho makes operational code trustworthy.
 
-Daicho is an open-source framework specification for building AI-era business tools and operational CRUD applications with a command-first developer experience, security-first architecture, secure-by-default behavior, and low-operation deployment paths.
+Daicho is an open-source framework specification for building AI-era business tools and operational CRUD applications with an AI-agent-friendly, command-capable developer experience, security-first architecture, secure-by-default behavior, user-facing web application or web API delivery, and low-operation deployment paths.
 
 The project is intentionally starting with a specification before implementation so that architecture, security, secure defaults, and operability can be reviewed globally and collaboratively.
 
@@ -24,7 +24,7 @@ Phase 0 is the specification and implementation-readiness phase. Its detailed sc
 
 Build a TypeScript-centered framework that lets teams create internal business systems, back-office workflows, data stewardship tools, and operational APIs without relying on development GUIs or mandatory administrative GUIs.
 
-Daicho assumes that modern builders use AI coding agents, terminal workflows, code review, infrastructure-as-code, and policy automation. The framework should therefore be optimized for text, schemas, generated code, repeatable templates, security-first decisions, and secure defaults rather than drag-and-drop screens.
+Daicho assumes that modern builders use AI coding agents such as Codex or Claude Code, terminal workflows, code review, infrastructure-as-code, and policy automation. The framework should therefore be optimized for text, schemas, generated code, repeatable templates, security-first decisions, and secure defaults rather than drag-and-drop screens.
 
 ## Non-goals
 
@@ -38,16 +38,17 @@ Daicho is not intended to be:
 
 ## Core principles
 
-1. **Command-first, AI-friendly development**: all project definition, generation, migrations, policies, and deployment workflows must be available through plain text files and CLI commands.
+1. **AI-agent-first, command-capable development**: all project definition, generation, migrations, policies, and deployment workflows must be available through plain text files and CLI commands suitable for AI agents, CI, and human review.
 2. **No development GUI**: visual development tools are out of scope. The source of truth must remain code, schemas, migrations, policies, and tests.
-3. **No default administrative GUI**: generated management screens are not a default feature. Operators should use APIs, CLIs, auditable workflows, and optional separately maintained UIs only when truly required.
+3. **No default administrative GUI**: generated management screens are not a default feature. Operators should use APIs, CLIs, auditable workflows, and optional separately maintained UIs only when truly required; product users should not need the Daicho CLI.
 4. **Security first, secure by default**: generators, runtime paths, adapters, and templates must prefer explicit, reviewable, least-privilege behavior. Password login must be disabled by default, unsafe SQL construction must be prevented, and cross-tenant access must be blocked by construction. SSO, SAML, OIDC, passkeys, and upstream trusted identity modes must be first-class over time.
 5. **PostgreSQL as the system of record**: PostgreSQL is the primary database target for transactional data, migrations, row-level policies, and audit records.
 6. **Multi-cloud and portable**: deployments should work across major clouds and self-hosted environments using open standards and minimal provider lock-in.
-7. **Minimal dependencies**: prefer the platform, small internal modules, and carefully selected dependencies. Every dependency must justify its operational and supply-chain risk.
-8. **Multi-tenant capable**: the architecture must support single-tenant, shared-database multi-tenant, and stronger isolation models.
-9. **Auditable operations**: business operations, administrative changes, access decisions, and generated artifacts should be traceable.
-10. **Progressive adoption**: teams should be able to adopt Daicho for one service, one workflow, or one tenant model without migrating their whole stack.
+7. **Protected ingress by default**: deliver web applications and APIs behind Cloudflare Access, Tailscale, identity-aware proxies, API gateways, private service meshes, or equivalent controls rather than exposing origin servers directly.
+8. **Minimal dependencies**: prefer the platform, small internal modules, and carefully selected dependencies. Every dependency must justify its operational and supply-chain risk.
+9. **Multi-tenant capable**: the architecture must support single-tenant, shared-database multi-tenant, and stronger isolation models.
+10. **Auditable operations**: business operations, administrative changes, access decisions, and generated artifacts should be traceable.
+11. **Progressive adoption**: teams should be able to adopt Daicho for one service, one workflow, or one tenant model without migrating their whole stack.
 
 ## Target use cases
 
@@ -62,7 +63,7 @@ Daicho is not intended to be:
 
 ```text
 +----------------------+      +-----------------------+
-| AI / Human CLI       | ---> | Daicho CLI            |
+| AI Agent / CI / CLI  | ---> | Daicho CLI            |
 | code review, shell   |      | generate, migrate,    |
 | CI/CD, IaC           |      | test, deploy          |
 +----------------------+      +-----------+-----------+
@@ -86,11 +87,11 @@ Daicho is not intended to be:
 
 ### 1. Daicho CLI
 
-The CLI is the primary interface for developers, operators, and AI agents.
+The CLI is the primary interface for developers, AI agents, CI, and limited operator workflows. Product users consume Daicho deliverables through web applications, web APIs, service integrations, or background workflows, not through the Daicho CLI.
 
 Required capabilities:
 
-- Initialize projects from templates.
+- Validate clone-first starter projects.
 - Generate modules from declarative resource definitions.
 - Create and run PostgreSQL migrations.
 - Validate schemas, policies, dependency constraints, and deployment manifests.
@@ -98,6 +99,7 @@ Required capabilities:
 - Export OpenAPI and JSON Schema artifacts.
 - Run local tests without requiring a GUI.
 - Prepare deployment bundles for supported targets.
+- Report protected-ingress assumptions and runtime linkage identity.
 
 ### 2. Resource definition format
 

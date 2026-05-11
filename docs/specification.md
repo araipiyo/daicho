@@ -1,11 +1,11 @@
 # Daicho Framework Specification
 
-Status: Draft 0.2
+Status: Draft 0.3
 Phase: 0
 
 ## 1. Purpose
 
-Daicho is a security-first, text-first TypeScript framework for AI-era operational systems and CRUD APIs. It replaces GUI-first admin tooling with reviewable source files, CLI checks, generated artifacts, tests, and CI/CD.
+Daicho is a security-first, text-first TypeScript framework for AI-era operational systems and CRUD APIs. It assumes developers use AI coding agents such as Codex or Claude Code with source files, reviewable diffs, CLI checks, generated artifacts, tests, and CI/CD instead of GUI-first admin tooling.
 
 Phase 0 defines the implementation-ready specification set. Phase 1 proves the first prototype.
 
@@ -13,6 +13,7 @@ Phase 0 defines the implementation-ready specification set. Phase 1 proves the f
 
 Daicho must:
 
+- Be optimized for AI-assisted development with human review of source, plans, tests, and diffs.
 - Be usable without a development GUI or default administrative GUI.
 - Be secure by default and deny by default.
 - Disable password login by default.
@@ -21,6 +22,7 @@ Daicho must:
 - Treat tenancy, policy, audit, and SQL safety as framework invariants.
 - Emit deterministic, reviewable source, SQL, OpenAPI, JSON Schema, plans, and diagnostics.
 - Avoid a proprietary hosted control plane requirement.
+- Deliver user-facing functionality as web applications, web APIs, background jobs, or integrations; end users must not need the Daicho CLI.
 - Keep dependencies minimal, pinned, reviewed, and replaceable.
 
 ## 3. Required product surface
@@ -29,7 +31,8 @@ Phase 1 must provide:
 
 - A clone-first starter project.
 - A runtime library that enforces identity, tenancy, policy, SQL safety, and audit rules.
-- A CLI for validation, tests, exports, deployment preparation, and diagnostics.
+- A CLI for developer, AI-agent, CI, and limited operator workflows such as validation, tests, exports, deployment preparation, and diagnostics.
+- A web application or web API delivery path for product users.
 - PostgreSQL migrations committed as source.
 - OpenAPI and JSON Schema exports.
 - Docker Compose deployment support and a human deployment checklist.
@@ -42,8 +45,15 @@ Phase 1 does not require:
 - Built-in admin UI generation.
 - Automatic cloud deployment.
 - Built-in password authentication.
+- A requirement that product users install or run the Daicho CLI.
 
-## 4. Required CLI commands
+## 4. Developer, operator, and user surfaces
+
+Developers are expected to work primarily through AI coding agents such as Codex or Claude Code, source control, code review, CI, and the Daicho CLI. The CLI is a developer, AI-agent, CI, and operator tool. Direct human CLI use should be limited to cases where it is appropriate, such as local checks, diagnostics, export generation, and deployment preparation.
+
+Product users consume Daicho-built deliverables through web applications, web APIs, background integrations, or service-to-service interfaces. Product users must not be required to run the Daicho CLI, edit Daicho source files, or understand deployment plans.
+
+## 5. Required CLI commands
 
 Phase 1 commands:
 
@@ -55,7 +65,7 @@ Phase 1 commands:
 
 Commands that can affect data or deployment must support dry-run or plan output. Plans must not contain secrets.
 
-## 5. Runtime requirements
+## 6. Runtime requirements
 
 The runtime must:
 
@@ -69,7 +79,7 @@ The runtime must:
 - Write audit events for security-relevant operations.
 - Redact secrets from logs, plans, errors, examples, and manifests.
 
-## 6. Resource requirements
+## 7. Resource requirements
 
 Every resource must declare:
 
@@ -84,7 +94,40 @@ Every resource must declare:
 
 Tenant-scoped resources must include tenant constraints in generated or framework-provided queries.
 
-## 7. Phase 0 document set
+## 8. Deployment and access model
+
+Daicho deliverables should be deployed behind an explicit access layer such as Cloudflare Access, Tailscale, an identity-aware proxy, API gateway, private service mesh, or equivalent zero-trust product. Even when an application is intended for broad public use, the origin server should not be exposed directly to the public Internet unless there is an explicit documented exception and compensating controls.
+
+Recommended deployment posture:
+
+- Bind the origin to a private network, loopback interface, private load balancer, tunnel, or firewall rule that only accepts traffic from the configured access layer.
+- Prefer upstream trusted identity, OIDC, SAML, passkeys, mTLS, or signed service tokens over in-application passwords.
+- Reject identity headers unless they arrive through a configured trusted boundary.
+- Require TLS at the user-facing edge and authenticated, encrypted transport from the edge to the origin where supported.
+- Include health and readiness endpoints that do not reveal sensitive application state.
+
+The framework can help confirm the access path only when the access layer provides verifiable evidence, such as signed JWTs, mTLS client certificates, cryptographically verifiable service tokens, trusted proxy source constraints, or provider-specific headers validated against a trusted issuer. Plain headers alone are not proof of the path. Daicho checks and runtime adapters should therefore distinguish between:
+
+- **Verified ingress**: the runtime validates a signed token, mTLS identity, or equivalent cryptographic proof from the access layer.
+- **Trusted-network ingress**: deployment configuration restricts traffic to known proxies or private networks, and the runtime accepts configured headers only from that boundary.
+- **Unverified ingress**: no reliable proof exists; the runtime must not trust identity headers and should fail security checks for upstream trusted identity mode.
+
+## 9. Runtime linkage model
+
+Phase 1 uses a clone-first starter workflow, so the Daicho runtime may initially live in the same repository as the application template for simplicity and reviewability. The starter must still make runtime boundaries explicit: application code imports runtime APIs through stable package names or paths and must not copy security-critical runtime internals.
+
+The long-term preferred model is to link the application to a separately versioned Daicho runtime artifact, such as a pinned package, signed release archive, Git submodule, or other immutable dependency with provenance, integrity checks, and an update policy. Separating the runtime from each application is expected to improve security updates, vulnerability response, provenance review, and avoidance of unreviewed local modifications.
+
+Any runtime linkage model must specify:
+
+- Exact version or commit identity.
+- Integrity or provenance verification where available.
+- Update and rollback workflow.
+- Whether local runtime modifications are allowed.
+- How security patches reach existing applications.
+- Which files are application-owned versus framework-owned.
+
+## 10. Phase 0 document set
 
 The specification set is:
 
@@ -97,7 +140,7 @@ The specification set is:
 - `docs/prototype-acceptance.md`: end-to-end acceptance checklist.
 - `docs/decisions.md`: accepted and deferred decisions.
 
-## 8. Phase 0 acceptance
+## 11. Phase 0 acceptance
 
 Phase 0 can close when maintainers accept:
 
@@ -109,16 +152,20 @@ Phase 0 can close when maintainers accept:
 - Deny-by-default authorization.
 - Audit requirements.
 - Raw SQL restrictions.
-- Deployment templates and human checklist.
+- Deployment templates, protected-origin guidance, and human checklist.
+- Developer CLI scope and product-user web/API scope.
+- Runtime linkage model.
 - Single end-to-end prototype scenario.
 
-## 9. Deferred questions
+## 12. Deferred questions
 
 These may wait until after the prototype if documented:
 
 - Post-Phase 1 generator scope.
 - Cloud-specific deployment templates.
+- Provider-specific ingress verification adapters.
 - PostgreSQL row-level security automation.
 - Safe custom SQL extension model.
 - Adapter order after upstream trusted identity.
 - Default package manager, SBOM tool, and vulnerability scanner.
+- Final post-Phase 1 runtime distribution and linkage mechanism.
