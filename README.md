@@ -1,6 +1,8 @@
 # Daicho
 
 > AI makes code cheap. Daicho makes operational code trustworthy.
+>
+> Vibe-code enterprise apps. Ship with SAML and SCIM.
 
 Daicho is an open-source framework specification for building AI-era business tools and operational CRUD applications with an AI-agent-friendly, command-capable developer experience, security-first architecture, secure-by-default behavior, user-facing web application or web API delivery, and low-operation deployment paths.
 
