@@ -3,11 +3,11 @@
 > AI makes code cheap. Daicho makes operational code trustworthy.
 >
 > Vibe-code enterprise apps in a day.
->
-> Daicho gives AI agents a secure enterprise application shell:
-> SAML, SCIM, RBAC, audit logs, PostgreSQL, and declarative CRUD.
 
-Daicho is an open-source framework specification for building AI-era business tools and operational CRUD applications with an AI-agent-friendly, command-capable developer experience, security-first architecture, secure-by-default behavior, user-facing web application or web API delivery, and low-operation deployment paths.
+Daicho is an AI-first framework for shipping enterprise-ready internal applications in a day.
+
+It gives AI agents a secure application shell with SAML, SCIM, audit logs,
+fine-grained permissions, PostgreSQL, and declarative CRUD.
 
 ## Why Daicho?
 
