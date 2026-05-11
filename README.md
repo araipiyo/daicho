@@ -430,6 +430,7 @@ daicho/
 - **Package and runtime baseline**: use Corepack-pinned `pnpm`, Node.js `>=24 <25`, and PostgreSQL `>=17 <19` with PostgreSQL 18 preferred.
 - **SBOM and vulnerability scanning**: generate CycloneDX JSON with `@cyclonedx/cdxgen`, scan with OSV-Scanner, and also run package-manager native audit signals where available.
 - **PostgreSQL row-level security**: RLS generation is not required for the first prototype. It should remain a future optional capability.
+- **First HTTP framework**: use Hono as the Phase 1 HTTP routing and middleware layer through a thin Daicho-owned adapter. Fastify remains the fallback if prototype testing exposes unacceptable Node.js production, streaming, plugin, or schema-integration gaps. Do not build a complex in-house web framework.
 - **First identity mode**: implement a no-login / upstream trusted identity mode first, assuming deployments can be protected by Cloudflare Access or an equivalent external access layer. OIDC, SAML, passkeys, and SCIM provisioning can follow as explicit adapters, but the principal and account-lifecycle model must not block those enterprise integrations.
 - **Minimum viable deployment target**: provide Docker Compose or an equivalent local container setup first so teams can test Daicho easily.
 - **Optional UI generation**: Daicho itself may not need a management UI. Generated applications should be manageable through APIs, CLIs, and application-specific workflows; any optional UI generator should be separate from the core runtime unless a strong reason emerges.

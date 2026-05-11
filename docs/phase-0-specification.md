@@ -15,6 +15,7 @@ Phase 0 is complete when maintainers have accepted:
 - Runtime-library-first architecture.
 - AI-agent-first, command-capable developer workflow.
 - Web application and web API product-user delivery model.
+- First HTTP framework boundary for product web applications and APIs.
 - Clone-first starter workflow.
 - Phase 1 CLI command set.
 - Resource and tenancy model.
@@ -53,6 +54,7 @@ Phase 1 assumes:
 - Developers start by cloning a maintained starter repo and commonly use AI coding agents such as Codex or Claude Code.
 - The CLI validates, tests, exports, prepares deployment, and diagnoses problems for developers, AI agents, CI, and limited operator workflows.
 - Product users consume the deliverable as a web application, web API, service integration, or background workflow, not through the Daicho CLI.
+- Phase 1 uses Hono as a maintained external HTTP router through a thin Daicho-owned adapter, with Fastify retained as the fallback if prototype validation exposes unacceptable gaps.
 - The runtime library enforces security invariants.
 - PostgreSQL is the system of record.
 - Upstream trusted identity is the first authentication mode, with OIDC, SAML, passkeys, service credentials, and SCIM provisioning preserved as explicit adapter boundaries.
@@ -101,6 +103,7 @@ Phase 1 must enforce or test:
 - Destructive migration plans require explicit human approval tied to migration checksums.
 - SBOM and vulnerability scans run in CI with documented exception handling.
 - Product users can access the delivered web app or API without the Daicho CLI.
+- Core web/API routing uses the approved HTTP framework adapter and does not grow a complex in-house framework.
 
 If a rule is not enforced at runtime, Phase 0 must name the test, lint rule, or review gate that enforces it.
 
@@ -120,4 +123,5 @@ Phase 0 may defer:
 
 - Row-level security roadmap.
 - Provider-specific protected-ingress adapters and proof formats.
+- Optional UI framework choice for separately packaged human-facing applications.
 - Post-Phase 1 runtime distribution mechanism.

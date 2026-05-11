@@ -167,6 +167,16 @@ Alternatives considered: Treating SCIM and SAML as post-prototype topics was rej
 Date accepted: 2026-05-11.
 Owners or reviewers: Maintainers.
 
+### D0113: First HTTP framework for web applications and APIs
+
+Status: Accepted
+Context: Phase 1 must deliver web applications and web APIs without building a complex HTTP framework in-house. Daicho also needs runtime-library-first control over identity, tenant resolution, policy enforcement, audit, redaction, health checks, and generated API contracts. Candidate libraries were evaluated against Node.js LTS support, Web API compatibility, JSON Schema alignment, middleware simplicity, deployment portability, dependency weight, and whether the library would force Daicho into a UI-first or runtime-specific architecture.
+Decision: Use Hono as the first HTTP routing and middleware layer for Phase 1. Daicho will own only a thin adapter around Hono that registers generated resource routes, wraps every handler in the Daicho security pipeline, emits health/readiness routes, and exposes a standard `fetch`-style handler for tests and serverless/container adapters. The adapter must remain small and must not become a general in-house web framework. Fastify remains the fallback if Phase 1 testing shows that Hono cannot satisfy Node.js production needs, streaming behavior, plugin requirements, or JSON Schema/OpenAPI integration with acceptable effort. Do not choose Next.js, Remix, SvelteKit, or another UI-first full-stack framework as the core runtime framework; optional human-facing applications may consume Daicho APIs from a separate package or project. Do not choose Bun-first frameworks such as Elysia for the Phase 1 core runtime while Node.js is the production baseline.
+Consequence: Phase 1 gets a maintained external router with Web-standard request/response semantics while preserving Daicho ownership of security-critical behavior. Generated APIs can be tested through standard `Request` objects, packaged for containers or serverless adapters, and kept separate from optional UI concerns. Daicho must explicitly generate or validate JSON Schema/OpenAPI artifacts rather than relying on framework magic.
+Alternatives considered: Fastify has strong Node.js maturity, route-level JSON Schema validation, and serialization support, and remains a credible fallback, but it is more Node-specific and less aligned with fetch-style portability. Express was rejected as a first choice because it would require more Daicho-owned validation, serialization, and async error conventions. NestJS was rejected because its inversion-of-control and decorator model are heavier than the Phase 1 runtime-library goal. Next.js and similar full-stack UI frameworks were rejected for the core runtime because Daicho has no default administrative GUI and should not couple API enforcement to a React or file-routing application model. Elysia was rejected for Phase 1 because it is Bun-first while Daicho's accepted production runtime is Node.js. A fully custom router was rejected because maintaining routing, middleware, request parsing, error handling, and adapter behavior would be a complex in-house framework.
+Date accepted: 2026-05-11.
+Owners or reviewers: Maintainers.
+
 ## 4. Deferred Phase 0 decisions
 
 ### D0109: Row-level security roadmap
