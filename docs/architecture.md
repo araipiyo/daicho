@@ -1,65 +1,58 @@
 # Daicho Architecture Specification
 
-Status: Draft 0.1  
+Status: Draft 0.2
 Phase: 0
 
 ## 1. Purpose
 
-This document defines the target architecture for the first Daicho prototype. It is normative for Phase 1 unless superseded by an accepted decision record.
+This document defines the Phase 1 architecture. Daicho is a runtime-library-first framework with CLI checks and reviewable source artifacts.
 
-## 2. Architectural goals
+## 2. Architecture goals
 
 Daicho must be:
 
-- Command-first and usable without a development GUI.
+- Command-first and GUI-free for development.
 - Secure by default and explicit about security-sensitive behavior.
-- Text-first, deterministic, and friendly to code review and AI-assisted development.
-- PostgreSQL-centered for transactional data, migrations, tenancy, and audit records.
-- Portable across local containers, managed PostgreSQL, Kubernetes, and major cloud container platforms.
+- Text-first, deterministic, and review-friendly.
+- PostgreSQL-centered for data, migrations, tenancy, and audit.
+- Portable across local containers, managed PostgreSQL, Kubernetes, and cloud container platforms.
 
-## 3. Component overview
+## 3. Components
 
 ```text
-+-------------------+      +-------------------+      +-------------------+
-| Project files     | ---> | Daicho CLI        | ---> | Generated app     |
-| resources, policy |      | validate, plan,   |      | HTTP API, jobs,   |
-| config, tests     |      | generate, migrate |      | policies, audit   |
-+-------------------+      +---------+---------+      +---------+---------+
-                                      |                          |
-                                      v                          v
-                            +-------------------+      +-------------------+
-                            | Generated output  |      | PostgreSQL        |
-                            | TS, SQL, OpenAPI, |      | data, migrations, |
-                            | JSON Schema, IaC  |      | audit             |
-                            +-------------------+      +-------------------+
+Project source  ->  Daicho CLI checks/exports  ->  Daicho runtime library
+resources          plans, diagnostics, schemas      HTTP API, policy, audit
+policies                                           |
+config                                             v
+Docker files                                  PostgreSQL
 ```
 
 ## 4. Project inputs
 
-A Daicho project must contain explicit source files for:
+A project must contain explicit source files for:
 
-- Project configuration.
-- Resource definitions.
-- Authorization policies.
-- Policy tests.
-- Environment configuration templates.
-- Deployment templates or deployment target configuration.
+- Configuration.
+- Resources.
+- Policies.
+- Policy and integration tests.
+- Environment templates.
+- Deployment templates or target configuration.
 
-The CLI must reject missing required inputs with machine-readable diagnostics.
+Missing required inputs must produce machine-readable diagnostics.
 
-## 5. CLI architecture
+## 5. CLI pipeline
 
-The CLI must be implemented as a deterministic pipeline:
+The CLI pipeline is:
 
 1. Discover project root.
 2. Load configuration.
-3. Load resource and policy sources.
-4. Compile resources into an intermediate representation.
+3. Load resources and policies.
+4. Compile an intermediate representation.
 5. Validate security and tenancy invariants.
-6. Produce a plan for changes.
-7. Generate files or apply approved actions only when requested.
+6. Emit diagnostics, exports, or plans.
+7. Apply no infrastructure changes unless an explicit command requires it.
 
-The CLI must support JSON output for automation. Mutating commands must support dry-run or plan-only behavior.
+JSON output is required for automation. Plans must not contain secrets.
 
 ## 6. Intermediate representation
 
@@ -67,89 +60,72 @@ The intermediate representation must include:
 
 - Resource names and source locations.
 - Field metadata.
-- Tenancy mode and tenant key metadata.
-- Database table and column mappings.
-- Indexes and constraints.
-- Relationship definitions.
-- API exposure rules.
+- Tenancy metadata.
+- Database mappings.
+- Indexes, constraints, and relationships.
+- API exposure.
 - Policy bindings.
 - Audit settings.
 
-The representation must be serializable for tests and debugging. It must not contain secrets.
+It must be serializable and secret-free.
 
-## 7. Code generation architecture
+## 7. Runtime request flow
 
-Generated code must be reviewable application code, not opaque hidden behavior. Generated modules should be separated into stable areas:
+A request must flow in this order:
 
-- Resource metadata.
-- Validation schemas.
-- HTTP handlers.
-- Policy invocation wrappers.
-- Query builders or repository functions.
-- Migration SQL.
-- Audit event writers.
-- OpenAPI and JSON Schema outputs.
-
-Generated files must identify that they are generated and must include source input hashes when practical.
-
-## 8. Runtime request flow
-
-The generated HTTP runtime must process requests in this order:
-
-1. Parse request metadata and correlation ID.
-2. Extract principal from the configured identity mode.
+1. Parse metadata and correlation ID.
+2. Extract principal from configured identity mode.
 3. Resolve tenant context.
 4. Validate request shape.
-5. Evaluate authorization policy before mutation or broad data access.
-6. Execute tenant-safe database query in a transaction when mutating data.
-7. Persist audit events for security-relevant operations.
+5. Evaluate policy.
+6. Execute tenant-safe database work, using a transaction for mutations.
+7. Persist audit events.
 8. Emit structured logs.
-9. Return structured response or structured error.
+9. Return a structured response or error.
 
-## 9. PostgreSQL architecture
+## 8. PostgreSQL boundary
 
-PostgreSQL is the system of record. The PostgreSQL layer must provide:
+PostgreSQL is the system of record. The database layer must provide:
 
 - Parameterized SQL execution.
+- Safe generated identifier handling.
 - Tenant-aware query construction.
-- Migration files committed to source control.
+- Source-controlled migrations.
 - Transaction boundaries for mutations.
-- Audit event persistence.
-- Backup and restore documentation.
+- Audit persistence.
 
-Generated code must not concatenate untrusted values into SQL strings.
+Generated or starter code must not concatenate untrusted values into SQL.
 
-## 10. Policy engine boundary
+## 9. Policy boundary
 
-Policies must be invoked through a stable interface that receives:
+Policies must be called through a stable interface with:
 
 - Principal.
 - Tenant context.
 - Resource name.
-- Operation name.
+- Operation.
 - Existing record values when needed.
-- Proposed record values for create and update operations.
+- Proposed record values for creates and updates.
 - Request metadata required by policy.
 
-Policies must return explicit allow or deny results with optional reason codes suitable for audit records.
+Policies return allow or deny with safe reason codes for audit.
 
-## 11. Adapter architecture
+## 10. Adapter boundary
 
-Adapters must be optional modules. The core runtime must not require a proprietary hosted Daicho service. Adapter categories include:
+Adapters are optional modules. The core runtime must not require a hosted Daicho service.
 
-- Identity providers.
-- Object storage.
-- Queues.
-- Email providers.
-- Deployment targets.
-- Observability exporters.
+Adapter categories include identity providers, object storage, queues, email, deployment targets, and observability exporters. Each adapter must declare configuration, secrets, capabilities, and failure behavior.
 
-Adapters must declare configuration, required secrets, capabilities, and failure behavior.
+## 11. Observability
 
-## 12. Observability architecture
+Generated applications must provide:
 
-Generated applications must emit structured logs with correlation IDs. Logs must not include secrets. Health and readiness endpoints must be available for deployment platforms.
+- Structured logs with correlation IDs.
+- Secret redaction.
+- Health endpoint.
+- Readiness endpoint.
+- Audit records for security-relevant events.
 
-## 13. Architecture acceptance criteria
+## 12. Acceptance
 
-The architecture is acceptable for Phase 1 when it can explain how a tenant-scoped CRUD request flows from HTTP ingress through identity, tenant resolution, policy, SQL, audit, and response serialization without relying on a GUI or hidden service.
+The architecture is acceptable when it explains one tenant-scoped CRUD request from HTTP ingress through identity, tenant resolution, policy, SQL, audit, logs, and response serialization without a GUI or hidden service.

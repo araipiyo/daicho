@@ -1,79 +1,63 @@
 # Daicho CLI Specification
 
-Status: Draft 0.1  
+Status: Draft 0.2
 Phase: 0
 
 ## 1. Purpose
 
-This document defines the command-line behavior required for the first Daicho prototype.
+This document defines the Phase 1 command-line surface.
 
-## 2. Global CLI requirements
+## 2. Global requirements
 
 The CLI must:
 
 - Run without a GUI.
-- Support human-readable output by default.
+- Default to human-readable output.
 - Support JSON output for automation.
-- Return stable exit codes.
-- Redact secrets.
-- Emit plans before mutating infrastructure or databases.
+- Use stable exit codes and diagnostic codes.
 - Be deterministic for the same inputs.
+- Redact secrets.
+- Emit plans before data or deployment changes.
 
 ## 3. Exit codes
 
-The first prototype should reserve these exit codes:
+Reserved exit codes:
 
 - `0`: success.
 - `1`: general failure.
 - `2`: validation failure.
 - `3`: configuration error.
-- `4`: plan contains unapproved destructive changes.
+- `4`: unapproved destructive plan.
 - `5`: environment prerequisite failure.
 - `6`: security invariant failure.
 
 ## 4. Required commands
 
-### 4.1 `daicho init`
+### `daicho check`
 
-Creates a new project from a template. It must not enable password login by default.
+Validates configuration, resources, policies, tenancy declarations, deployment files, and dependency risk. It must fail on missing tenancy, missing policy bindings, unsafe identity configuration, and unsafe default security settings.
 
-### 4.2 `daicho validate`
+### `daicho test`
 
-Validates project configuration, resources, policies, and deployment manifests. It must fail on missing tenancy declarations, missing required policy bindings, and unsafe configuration.
+Runs the project test suite and Daicho security checks. It must support command-line policy tests and negative tests for deny-by-default behavior.
 
-### 4.3 `daicho plan`
+### `daicho export`
 
-Emits a machine-readable plan for generation, migration, or deployment work. Plans must not include secrets.
+Writes OpenAPI and JSON Schema artifacts. Exports must be deterministic, reviewable, and free of secrets.
 
-### 4.4 `daicho generate`
+### `daicho deploy prepare`
 
-Generates TypeScript, SQL, OpenAPI, JSON Schema, and supporting files. It must identify generated files and preserve reviewability.
+Prepares deployment files, redacted plans, and human-readable instructions. It must not apply infrastructure.
 
-### 4.5 `daicho migrate`
+### `daicho doctor`
 
-Creates or applies PostgreSQL migrations. Destructive operations must require an explicit approval mechanism.
+Reports local prerequisites, configuration risks, and common environment problems.
 
-### 4.6 `daicho policy test`
-
-Runs policy tests without a browser or GUI. It must support negative tests for deny-by-default behavior.
-
-### 4.7 `daicho test`
-
-Runs generated project checks from the command line.
-
-### 4.8 `daicho deploy prepare`
-
-Creates deployment bundles or templates without applying infrastructure.
-
-### 4.9 `daicho doctor`
-
-Checks local prerequisites, configuration risks, and common environment problems.
-
-## 5. Plan schema requirements
+## 5. Plan requirements
 
 A plan must include:
 
-- Plan schema version.
+- Schema version.
 - Daicho version.
 - Project root.
 - Command and arguments.
@@ -82,17 +66,29 @@ A plan must include:
 - Proposed file changes.
 - Proposed database changes.
 - Proposed deployment changes.
-- Security-sensitive warnings.
+- Security warnings.
 - Required approvals.
 
-## 6. Error output requirements
+A plan must not include secrets.
 
-Errors must include:
+## 6. Diagnostic requirements
 
-- Stable error code.
+Diagnostics must include:
+
+- Stable code.
+- Severity.
 - Short message.
 - Detailed message.
 - Source location when applicable.
-- Suggested remediation when safe.
+- Safe remediation guidance.
 
-Errors must not include secrets.
+Diagnostics must not include secrets.
+
+## 7. Explicit non-goals for Phase 1
+
+Phase 1 does not require:
+
+- `daicho init`.
+- General project scaffolding.
+- Full application code generation.
+- Automatic cloud deployment.

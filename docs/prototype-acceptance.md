@@ -1,6 +1,6 @@
 # Daicho Prototype Acceptance Plan
 
-Status: Draft 0.1  
+Status: Draft 0.2
 Phase: 0
 
 ## 1. Purpose
@@ -9,44 +9,43 @@ This document defines the acceptance criteria for the first Daicho prototype.
 
 ## 2. End-to-end scenario
 
-The prototype is acceptable when it can demonstrate this scenario entirely from the command line:
+The prototype passes when a command-line demo can:
 
-1. Initialize a new Daicho project.
+1. Use the clone-first starter project.
 2. Define one tenant-scoped `customer` resource.
-3. Validate the resource and policy bindings.
-4. Generate TypeScript runtime code, SQL migrations, OpenAPI, and JSON Schema.
-5. Start PostgreSQL and the generated application locally.
-6. Simulate an upstream trusted identity.
+3. Validate resources, tenancy, and policy bindings.
+4. Export OpenAPI and JSON Schema.
+5. Start PostgreSQL and the application locally.
+6. Simulate upstream trusted identity.
 7. Create, read, list, update, and delete customer records.
 8. Prove cross-tenant reads and writes fail.
 9. Prove missing or denying policies block access.
 10. Prove audit events are written.
 11. Run all tests from the command line.
-12. Produce Docker Compose deployment files.
+12. Produce Docker Compose deployment files and a redacted plan.
 
 ## 3. Required checks
 
-The prototype must include checks for:
+The prototype must check:
 
-- Project initialization.
 - Resource validation.
-- Migration generation.
-- Tenant-safe query generation.
+- Migration presence and safety classification.
+- Tenant-safe query behavior.
 - Deny-by-default authorization.
-- Policy test execution.
+- Policy tests.
 - Structured logs.
 - Audit records.
 - OpenAPI export.
 - JSON Schema export.
-- Docker Compose generation.
-- Absence of password login from the default template.
+- Docker Compose deployment preparation.
+- Absence of password login from the default starter.
 
 ## 4. Security failure cases
 
-The acceptance demo must show that:
+The demo must show that:
 
 - Requests without identity fail.
-- Requests without tenant context fail for tenant-scoped resources.
+- Tenant-scoped requests without tenant context fail.
 - Cross-tenant record access fails.
 - Missing policy bindings fail validation or deny access.
 - SQL injection-like inputs do not alter query structure.
@@ -54,10 +53,10 @@ The acceptance demo must show that:
 
 ## 5. Acceptance evidence
 
-A passing prototype should provide:
+A passing prototype must provide:
 
-- Commands used for the demo.
-- Generated files.
+- Demo commands.
+- Relevant source and generated/exported files.
 - Test output.
 - Example HTTP requests and responses.
 - Example audit records.
